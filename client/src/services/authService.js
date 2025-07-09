@@ -1,5 +1,7 @@
 import axios, { API_URL } from './apiConfig';
 
+// Setup axios interceptors for handling auth errors
+axios.interceptors.response.use(
   (response) => response,
   async (error) => {
     if (error.response?.status === 401 && localStorage.getItem('token')) {

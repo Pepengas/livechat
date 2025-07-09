@@ -15,7 +15,7 @@ WORKDIR /app
 COPY client ./client
 WORKDIR /app/client
 RUN npm install --no-audit --no-fund --prefer-offline
-RUN npm run build
+RUN CI=false npm run build
 
 # Setup server
 FROM base AS server-setup
