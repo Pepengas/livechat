@@ -13,7 +13,7 @@ export const SocketProvider = ({ children }) => {
     // Only connect socket if user is authenticated
     if (isAuthenticated && currentUser) {
       // Connect to socket server
-      const newSocket = io(process.env.REACT_APP_API_URL || 'http://localhost:5000', {
+      const newSocket = io(process.env.REACT_APP_API_URL || 'http://localhost:8080', {
         withCredentials: true,
       });
 

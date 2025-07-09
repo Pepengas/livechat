@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Use environment variable or default to localhost in development
-export const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+export const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
 
 // Configure axios with credentials
 axios.defaults.withCredentials = true;

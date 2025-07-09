@@ -3,7 +3,7 @@ const axios = require('axios');
 async function createTestAccounts() {
   try {
     // Create first test account
-    const response1 = await axios.post('http://localhost:5000/api/auth/register', {
+    const response1 = await axios.post('http://localhost:8080/api/auth/register', {
       name: 'Test User 1',
       email: 'test1@example.com',
       password: 'password123'
@@ -11,7 +11,7 @@ async function createTestAccounts() {
     console.log('Test User 1 created:', response1.data);
 
     // Create second test account
-    const response2 = await axios.post('http://localhost:5000/api/auth/register', {
+    const response2 = await axios.post('http://localhost:8080/api/auth/register', {
       name: 'Test User 2',
       email: 'test2@example.com',
       password: 'password123'

@@ -78,8 +78,8 @@ mongoose
     console.log('Connected to MongoDB');
     
     // Start server
-    const PORT = process.env.PORT || 5000;
-    server.listen(PORT, () => {
+    const PORT = process.env.PORT || 8080;
+    server.listen(PORT, '0.0.0.0', () => {
       console.log(`Server running on port ${PORT}`);
     });
   })

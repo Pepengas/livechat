@@ -70,7 +70,7 @@ livehcat/
    ```
 3. Create a `.env` file in the server directory with the following variables:
    ```
-   PORT=5000
+   PORT=8080
    MONGODB_URI=mongodb://localhost:27017/livechat
    JWT_SECRET=your_jwt_secret
    ```
