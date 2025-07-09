@@ -85,5 +85,12 @@ livehcat/
    npm start
    ```
 
+### Test Accounts
+
+The application comes with two test accounts:
+
+- Email: test1@example.com, Password: password123
+- Email: test2@example.com, Password: password123
+
 ## License
 MIT

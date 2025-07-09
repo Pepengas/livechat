@@ -21,8 +21,18 @@ const socketService = require('./services/socket.service');
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: process.env.NODE_ENV === 'production'
+    ? [process.env.CLIENT_URL || 'https://livechat-client.up.railway.app']
+    : 'http://localhost:3000',
+  credentials: true
+}));
 app.use(express.json());
+
+// Health check endpoint for Railway
+app.get('/', (req, res) => {
+  res.status(200).json({ status: 'ok', message: 'LiveChat API is running' });
+});
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -36,7 +46,9 @@ const server = http.createServer(app);
 // Create Socket.IO server
 const io = socketIo(server, {
   cors: {
-    origin: process.env.NODE_ENV === 'production' ? false : ['http://localhost:3000'],
+    origin: process.env.NODE_ENV === 'production' 
+      ? [process.env.CLIENT_URL || 'https://livechat-client.up.railway.app'] 
+      : ['http://localhost:3000'],
     methods: ['GET', 'POST'],
     credentials: true
   }
