@@ -1,21 +1,20 @@
 # Base image
 FROM node:18-alpine AS base
+ENV NODE_OPTIONS="--max-old-space-size=512"
 WORKDIR /app
 
 # Install root dependencies
 FROM base AS deps
 COPY package.json ./
 COPY package-lock.json* ./
-RUN npm ci
+RUN npm install --no-audit --no-fund --prefer-offline
 
 # Build client
 FROM base AS client-builder
 WORKDIR /app
 COPY client ./client
 WORKDIR /app/client
-COPY client/package.json ./
-COPY client/package-lock.json* ./
-RUN npm ci
+RUN npm install --no-audit --no-fund --prefer-offline
 RUN npm run build
 
 # Setup server
@@ -23,9 +22,7 @@ FROM base AS server-setup
 WORKDIR /app
 COPY server ./server
 WORKDIR /app/server
-COPY server/package.json ./
-COPY server/package-lock.json* ./
-RUN npm ci
+RUN npm install --no-audit --no-fund --prefer-offline
 
 # Final stage
 FROM base AS runner
@@ -33,7 +30,7 @@ COPY package.json ./
 COPY --from=client-builder /app/client/build ./client/build
 COPY --from=server-setup /app/server ./server
 WORKDIR /app/server
-RUN npm ci --production
+RUN npm install --production --no-audit --no-fund --prefer-offline
 
 # Set environment variables
 ENV NODE_ENV=production
