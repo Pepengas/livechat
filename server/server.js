@@ -29,8 +29,14 @@ app.use(cors({
 }));
 app.use(express.json());
 
+// Serve static files from the React app in production
+if (process.env.NODE_ENV === 'production') {
+  const path = require('path');
+  app.use(express.static(path.join(__dirname, '../client/build')));
+}
+
 // Health check endpoint for Railway
-app.get('/', (req, res) => {
+app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'ok', message: 'LiveChat API is running' });
 });
 
@@ -39,6 +45,14 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/chats', chatRoutes);
 app.use('/api/messages', messageRoutes);
+
+// Serve React app for any other routes in production
+if (process.env.NODE_ENV === 'production') {
+  const path = require('path');
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../client/build/index.html'));
+  });
+}
 
 // Create HTTP server
 const server = http.createServer(app);
