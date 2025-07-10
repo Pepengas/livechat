@@ -154,7 +154,7 @@ export const ChatProvider = ({ children }) => {
     // Message read
     socket.on('messages-read', ({ chatId, userId }) => {
       if (selectedChat && selectedChat._id === chatId) {
-        setMessages((prevMessages) => 
+        setMessages((prevMessages) =>
           prevMessages.map((msg) => {
             if (!msg.readBy.includes(userId)) {
               return {
@@ -168,6 +168,33 @@ export const ChatProvider = ({ children }) => {
       }
     });
 
+    // User avatar updated
+    socket.on('user-avatar-updated', ({ userId, avatar }) => {
+      setChats((prevChats) =>
+        prevChats.map((chat) => ({
+          ...chat,
+          users: chat.users.map((u) =>
+            u._id === userId ? { ...u, avatar } : u
+          ),
+          latestMessage: chat.latestMessage &&
+            chat.latestMessage.sender._id === userId
+            ? {
+                ...chat.latestMessage,
+                sender: { ...chat.latestMessage.sender, avatar },
+              }
+            : chat.latestMessage,
+        }))
+      );
+
+      setMessages((prevMessages) =>
+        prevMessages.map((m) =>
+          m.sender._id === userId
+            ? { ...m, sender: { ...m.sender, avatar } }
+            : m
+        )
+      );
+    });
+
     return () => {
       socket.off('message-received');
       socket.off('typing');
@@ -177,6 +204,7 @@ export const ChatProvider = ({ children }) => {
       socket.off('chat:removed');
       socket.off('message:deleted');
       socket.off('messages-read');
+      socket.off('user-avatar-updated');
     };
   }, [socket, selectedChat, currentUser]);
 
@@ -356,10 +384,10 @@ export const ChatProvider = ({ children }) => {
     }
   };
 
-  const sendNewMessage = async (chatId, content) => {
+  const sendNewMessage = async (chatId, content, attachments = []) => {
     setError(null);
     try {
-      const data = await sendMessage(chatId, content);
+      const data = await sendMessage(chatId, content, attachments);
 
       if (socket) {
         socket.emit('new-message', data);

@@ -1,6 +1,12 @@
 const Message = require('../models/message.model');
 const User = require('../models/user.model');
 const Chat = require('../models/chat.model');
+const path = require('path');
+const {
+  isValidFileType,
+  isValidFileSize,
+  generateUniqueFilename,
+} = require('../utils/fileUpload');
 
 /**
  * @desc    Send a new message
@@ -204,10 +210,36 @@ const searchMessages = async (req, res) => {
   }
 };
 
+/**
+ * @desc    Upload message attachments
+ * @route   POST /api/messages/upload
+ * @access  Private
+ */
+const uploadAttachments = async (req, res) => {
+  try {
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ message: 'No files uploaded' });
+    }
+
+    const attachments = req.files.map((file) => ({
+      type: file.mimetype,
+      url: `${req.protocol}://${req.get('host')}/uploads/${file.filename}`,
+      name: file.originalname,
+      size: file.size,
+    }));
+
+    res.status(201).json({ attachments });
+  } catch (error) {
+    console.error('Upload attachments error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
 module.exports = {
   sendMessage,
   getMessages,
   markAsRead,
   deleteMessage,
   searchMessages,
+  uploadAttachments,
 };

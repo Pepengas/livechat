@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useChat } from '../../hooks/useChat';
 import { useSocket } from '../../hooks/useSocket';
 import { useDebounce } from '../../hooks/useDebounce';
+import { uploadAttachments } from '../../services/messageService';
 
 const MessageInput = ({ chatId, onTyping }) => {
   const [message, setMessage] = useState('');
@@ -37,12 +38,32 @@ const MessageInput = ({ chatId, onTyping }) => {
   };
 
   // Handle file selection
+  const allowedTypes = [
+    'image/jpeg',
+    'image/png',
+    'image/gif',
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+  ];
+
   const handleFileSelect = (e) => {
     const files = Array.from(e.target.files);
     if (files.length === 0) return;
 
-    // Create preview URLs for selected files
-    const newAttachments = files.map(file => ({
+    const validFiles = files.filter(file => {
+      if (!allowedTypes.includes(file.type)) {
+        alert(`Unsupported file type: ${file.name}`);
+        return false;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        alert(`${file.name} exceeds 5MB size limit`);
+        return false;
+      }
+      return true;
+    });
+
+    const newAttachments = validFiles.map(file => ({
       file,
       name: file.name,
       size: file.size,
@@ -97,8 +118,13 @@ const MessageInput = ({ chatId, onTyping }) => {
         socket.emit('stop-typing', chatId);
       }
       
-      // Send message (attachments not yet supported)
-      await sendNewMessage(chatId, message.trim());
+      let uploaded = [];
+      if (attachments.length > 0) {
+        const files = attachments.map(a => a.file);
+        uploaded = await uploadAttachments(files);
+      }
+
+      await sendNewMessage(chatId, message.trim(), uploaded);
       
       // Reset state
       setMessage('');
