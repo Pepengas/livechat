@@ -96,6 +96,11 @@ const socketService = (io) => {
       }
     });
 
+    // Handle avatar update
+    socket.on('avatar-updated', ({ userId, avatar }) => {
+      io.emit('user-avatar-updated', { userId, avatar });
+    });
+
     // Handle disconnect
     socket.on('disconnect', async () => {
       console.log(`User disconnected: ${socket.id}`);

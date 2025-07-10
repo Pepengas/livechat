@@ -21,12 +21,16 @@ export const getMessages = async (chatId) => {
  * @param {Array} attachments - Optional array of attachment files
  * @returns {Promise<Object>} Created message
  */
-export const sendMessage = async (chatId, content) => {
+export const sendMessage = async (chatId, content, attachments = []) => {
   try {
     const payload = { chatId };
 
     if (content) {
       payload.content = content;
+    }
+
+    if (attachments && attachments.length > 0) {
+      payload.attachments = attachments;
     }
 
     const response = await axios.post(`${API_URL}/messages`, payload);
@@ -77,5 +81,24 @@ export const searchMessages = async (chatId, query) => {
     return response.data;
   } catch (error) {
     throw error.response?.data || { message: 'Failed to search messages' };
+  }
+};
+
+export const uploadAttachments = async (files) => {
+  try {
+    const formData = new FormData();
+    files.forEach((file) => {
+      formData.append('files', file);
+    });
+
+    const response = await axios.post(`${API_URL}/messages/upload`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+
+    return response.data.attachments;
+  } catch (error) {
+    throw error.response?.data || { message: 'Failed to upload files' };
   }
 };
