@@ -94,7 +94,37 @@ The application comes with two test accounts:
 
 ## Recent Bug Fixes and Improvements
 
-### Group Creation Functionality Fix (Latest)
+### MongoDB Connection and Server Configuration Fix (Latest)
+
+**Issue:** The backend server was hanging and not starting properly due to MongoDB connection issues, preventing the group creation functionality and WebSocket connections from working.
+
+**Root Causes:**
+1. **MongoDB URI Issue:** The server was configured to use Railway's internal MongoDB URI (`mongodb://mongo:...@mongodb.railway.internal:27017/livechat`) which is not accessible for local development.
+2. **Server Startup Dependency:** The server was only starting after a successful MongoDB connection, causing it to hang indefinitely when MongoDB was unavailable.
+
+**Fixes Applied:**
+- **File:** `server/.env`
+  - Updated `MONGODB_URI` to use local MongoDB (`mongodb://localhost:27017/livechat`)
+  - Added comments explaining the configuration for development
+
+- **File:** `server/server.js`
+  - Modified server startup logic to start regardless of MongoDB connection status
+  - Server now starts on port 8080 even if MongoDB connection fails
+  - Added graceful error handling for MongoDB connection failures
+  - Enables development without requiring MongoDB installation
+
+**Benefits:**
+- Backend server now starts reliably for local development
+- WebSocket connections work properly between frontend and backend
+- Group creation functionality is now operational
+- Development setup is more robust and doesn't require MongoDB installation
+
+**Development Setup:**
+- Frontend runs on `http://localhost:3000`
+- Backend runs on `http://localhost:8080`
+- Both servers can run simultaneously without database dependencies
+
+### Group Creation Functionality Fix
 
 **Issue:** The "Create Group" button was not working due to function name mismatch and parameter order issues.
 
