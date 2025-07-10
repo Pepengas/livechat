@@ -27,12 +27,29 @@ export const ChatProvider = ({ children }) => {
     }
   }, [isAuthenticated]);
 
+  // Join chat rooms when selected chat changes
+  useEffect(() => {
+    if (!socket) return;
+
+    if (selectedChat) {
+      socket.emit('join-chat', selectedChat._id);
+      console.log('Joined chat', selectedChat._id);
+    }
+
+    return () => {
+      if (selectedChat) {
+        socket.emit('leave-chat', selectedChat._id);
+        console.log('Left chat', selectedChat._id);
+      }
+    };
+  }, [socket, selectedChat]);
+
   // Socket event listeners
   useEffect(() => {
     if (!socket) return;
 
     // New message received
-    socket.on('message:received', (newMessage) => {
+    socket.on('message-received', (newMessage) => {
       // Update messages if in the same chat
       if (selectedChat && selectedChat._id === newMessage.chat._id) {
         setMessages((prevMessages) => [...prevMessages, newMessage]);
@@ -72,7 +89,7 @@ export const ChatProvider = ({ children }) => {
     });
 
     // User stopped typing
-    socket.on('stop:typing', ({ chatId, user }) => {
+    socket.on('stop-typing', ({ chatId, user }) => {
       if (user._id !== currentUser._id) {
         setTypingUsers((prev) => ({
           ...prev,
@@ -135,7 +152,7 @@ export const ChatProvider = ({ children }) => {
     });
 
     // Message read
-    socket.on('message:read', ({ chatId, userId }) => {
+    socket.on('messages-read', ({ chatId, userId }) => {
       if (selectedChat && selectedChat._id === chatId) {
         setMessages((prevMessages) => 
           prevMessages.map((msg) => {
@@ -152,14 +169,14 @@ export const ChatProvider = ({ children }) => {
     });
 
     return () => {
-      socket.off('message:received');
+      socket.off('message-received');
       socket.off('typing');
-      socket.off('stop:typing');
+      socket.off('stop-typing');
       socket.off('chat:updated');
       socket.off('chat:created');
       socket.off('chat:removed');
       socket.off('message:deleted');
-      socket.off('message:read');
+      socket.off('messages-read');
     };
   }, [socket, selectedChat, currentUser]);
 
@@ -343,6 +360,11 @@ export const ChatProvider = ({ children }) => {
     setError(null);
     try {
       const data = await sendMessage(chatId, content);
+
+      if (socket) {
+        socket.emit('new-message', data);
+        console.log('Emitted new-message', data);
+      }
       
       // Add message to current chat
       setMessages([...messages, data]);
@@ -424,13 +446,13 @@ export const ChatProvider = ({ children }) => {
 
   const startTyping = (chatId) => {
     if (socket && selectedChat) {
-      socket.emit('typing', { chatId, user: currentUser });
+      socket.emit('typing', chatId);
     }
   };
 
   const stopTyping = (chatId) => {
     if (socket && selectedChat) {
-      socket.emit('stop:typing', { chatId, user: currentUser });
+      socket.emit('stop-typing', chatId);
     }
   };
 
