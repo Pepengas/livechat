@@ -21,27 +21,16 @@ export const getMessages = async (chatId) => {
  * @param {Array} attachments - Optional array of attachment files
  * @returns {Promise<Object>} Created message
  */
-export const sendMessage = async (chatId, content, attachments = []) => {
+export const sendMessage = async (chatId, content) => {
   try {
-    const formData = new FormData();
-    formData.append('chatId', chatId);
-    
+    const payload = { chatId };
+
     if (content) {
-      formData.append('content', content);
+      payload.content = content;
     }
-    
-    if (attachments && attachments.length > 0) {
-      attachments.forEach((file, index) => {
-        formData.append('attachments', file);
-      });
-    }
-    
-    const response = await axios.post(`${API_URL}/messages`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
-    });
-    
+
+    const response = await axios.post(`${API_URL}/messages`, payload);
+
     return response.data;
   } catch (error) {
     throw error.response?.data || { message: 'Failed to send message' };
