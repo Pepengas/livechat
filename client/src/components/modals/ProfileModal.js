@@ -1,8 +1,10 @@
 import React, { useState, useRef } from 'react';
 import { useAuth } from '../../hooks/useAuth';
+import { useSocket } from '../../hooks/useSocket';
 
 const ProfileModal = ({ isOpen, onClose }) => {
   const { currentUser, updateProfile, updateAvatar } = useAuth();
+  const { socket } = useSocket();
   const [name, setName] = useState(currentUser?.name || '');
   const [email, setEmail] = useState(currentUser?.email || '');
   const [password, setPassword] = useState('');
@@ -65,7 +67,13 @@ const ProfileModal = ({ isOpen, onClose }) => {
 
       // Update avatar if changed
       if (avatar) {
-        await updateAvatar(avatar);
+        const data = await updateAvatar(avatar);
+        if (socket) {
+          socket.emit('avatar-updated', {
+            userId: currentUser._id,
+            avatar: data.avatar,
+          });
+        }
       }
 
       // Update profile details

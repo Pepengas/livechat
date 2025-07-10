@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import React, { createContext, useState, useEffect } from 'react';
 import {
   loginUser,
   registerUser,
@@ -7,7 +7,6 @@ import {
   updateUserProfile,
   uploadAvatar as uploadAvatarApi,
 } from '../services/authService';
-import { SocketContext } from './SocketContext';
 
 export const AuthContext = createContext();
 
@@ -16,7 +15,6 @@ export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const { socket } = useContext(SocketContext);
 
   useEffect(() => {
     // Check if user is already logged in
@@ -95,9 +93,6 @@ export const AuthProvider = ({ children }) => {
   const updateAvatar = async (file) => {
     const data = await uploadAvatarApi(file);
     setCurrentUser(prev => ({ ...prev, avatar: data.avatar }));
-    if (socket) {
-      socket.emit('avatar-updated', { userId: currentUser._id, avatar: data.avatar });
-    }
     return data;
   };
 
