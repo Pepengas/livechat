@@ -28,10 +28,11 @@ app.use(cors({
   credentials: true
 }));
 app.use(express.json());
+const path = require('path');
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Serve static files from the React app in production
 if (process.env.NODE_ENV === 'production') {
-  const path = require('path');
   app.use(express.static(path.join(__dirname, '../client/build')));
 }
 
@@ -48,7 +49,6 @@ app.use('/api/messages', messageRoutes);
 
 // Serve React app for any other routes in production
 if (process.env.NODE_ENV === 'production') {
-  const path = require('path');
   app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, '../client/build/index.html'));
   });

@@ -1,5 +1,12 @@
 import React, { createContext, useState, useEffect } from 'react';
-import { loginUser, registerUser, logoutUser, getCurrentUser } from '../services/authService';
+import {
+  loginUser,
+  registerUser,
+  logoutUser,
+  getCurrentUser,
+  updateUserProfile,
+  uploadAvatar as uploadAvatarApi,
+} from '../services/authService';
 
 export const AuthContext = createContext();
 
@@ -77,6 +84,18 @@ export const AuthProvider = ({ children }) => {
     }));
   };
 
+  const updateProfile = async (fields) => {
+    const data = await updateUserProfile(fields);
+    setCurrentUser(prev => ({ ...prev, ...data }));
+    return data;
+  };
+
+  const updateAvatar = async (file) => {
+    const data = await uploadAvatarApi(file);
+    setCurrentUser(prev => ({ ...prev, avatar: data.avatar }));
+    return data;
+  };
+
   const value = {
     currentUser,
     isAuthenticated,
@@ -85,7 +104,9 @@ export const AuthProvider = ({ children }) => {
     login,
     register,
     logout,
-    updateUser
+    updateUser,
+    updateProfile,
+    updateAvatar,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
