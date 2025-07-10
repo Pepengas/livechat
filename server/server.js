@@ -23,7 +23,7 @@ const app = express();
 // Middleware
 app.use(cors({
   origin: process.env.NODE_ENV === 'production'
-    ? [process.env.CLIENT_URL || 'https://livechat-client.up.railway.app']
+    ? [process.env.CLIENT_URL || 'https://livechat-production-d44b.up.railway.app']
     : 'http://localhost:3000',
   credentials: true
 }));
@@ -61,7 +61,7 @@ const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
     origin: process.env.NODE_ENV === 'production' 
-      ? [process.env.CLIENT_URL || 'https://livechat-client.up.railway.app'] 
+      ? [process.env.CLIENT_URL || 'https://livechat-production-d44b.up.railway.app'] 
       : ['http://localhost:3000'],
     methods: ['GET', 'POST'],
     credentials: true
