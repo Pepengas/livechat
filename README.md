@@ -156,6 +156,26 @@ The application comes with two test accounts:
 - Users can successfully create group chats with multiple participants
 - Real-time updates work correctly for all group members
 
+### WebSocket Invalid Namespace Fix
+
+**Issue:** Users saw `WebSocket connection failed: Error: Invalid namespace` in
+the browser console when the frontend attempted to establish a Socket.IO
+connection in production.
+
+**Root Cause:** The client used `REACT_APP_API_URL` (which ends with `/api`) as
+the Socket.IO server URL. Socket.IO interprets the pathname segment (`/api`) as a
+namespace, but the backend only exposes the default namespace `/`, so the server
+rejected the connection.
+
+**Fix Applied:**
+- **File:** `client/src/contexts/SocketContext.js`
+  - Strip the trailing `/api` from `REACT_APP_API_URL` before creating the Socket.IO client.
+  - This ensures the client connects to the correct namespace and resolves the
+    connection error.
+
+**Result:** WebSocket connections now establish successfully in production and
+real-time features like group creation work as expected.
+
 ### Previous Fixes
 
 **CORS and API URL Issues:**
