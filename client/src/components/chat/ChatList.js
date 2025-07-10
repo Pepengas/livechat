@@ -14,7 +14,7 @@ const ChatList = ({ chats, openUserProfileModal }) => {
     if (chat.isGroupChat) {
       return chat.name;
     }
-    return chat.participants.find(p => p._id !== currentUser._id)?.name || 'Deleted User';
+    return chat.users.find(p => p._id !== currentUser._id)?.name || 'Deleted User';
   };
 
   // Get the avatar for the chat
@@ -22,7 +22,7 @@ const ChatList = ({ chats, openUserProfileModal }) => {
     if (chat.isGroupChat) {
       return chat.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(chat.name)}&background=random`;
     }
-    const otherUser = chat.participants.find(p => p._id !== currentUser._id);
+    const otherUser = chat.users.find(p => p._id !== currentUser._id);
     return otherUser?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(otherUser?.name || 'User')}&background=random`;
   };
 
@@ -64,7 +64,7 @@ const ChatList = ({ chats, openUserProfileModal }) => {
   // Check if the other user is online (for one-to-one chats)
   const isChatUserOnline = (chat) => {
     if (chat.isGroupChat) return false;
-    const otherUser = chat.participants.find(p => p._id !== currentUser._id);
+    const otherUser = chat.users.find(p => p._id !== currentUser._id);
     return otherUser && isUserOnline(otherUser._id);
   };
 
@@ -117,7 +117,7 @@ const ChatList = ({ chats, openUserProfileModal }) => {
                 <button 
                   onClick={(e) => {
                     e.stopPropagation();
-                    const otherUser = chat.participants.find(p => p._id !== currentUser._id);
+    const otherUser = chat.users.find(p => p._id !== currentUser._id);
                     if (otherUser) {
                       openUserProfileModal(otherUser);
                     }
