@@ -339,10 +339,10 @@ export const ChatProvider = ({ children }) => {
     }
   };
 
-  const sendNewMessage = async (chatId, content, attachments = []) => {
+  const sendNewMessage = async (chatId, content) => {
     setError(null);
     try {
-      const data = await sendMessage(chatId, content, attachments);
+      const data = await sendMessage(chatId, content);
       
       // Add message to current chat
       setMessages([...messages, data]);

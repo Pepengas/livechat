@@ -97,11 +97,8 @@ const MessageInput = ({ chatId, onTyping }) => {
         socket.emit('stop:typing', { chatId });
       }
       
-      // Prepare files for upload
-      const files = attachments.map(attachment => attachment.file);
-      
-      // Send message
-      await sendNewMessage(chatId, message.trim(), files);
+      // Send message (attachments not yet supported)
+      await sendNewMessage(chatId, message.trim());
       
       // Reset state
       setMessage('');
