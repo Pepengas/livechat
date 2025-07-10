@@ -13,7 +13,13 @@ export const SocketProvider = ({ children }) => {
     // Only connect socket if user is authenticated
     if (isAuthenticated && currentUser) {
       // Connect to socket server
-      const newSocket = io(process.env.REACT_APP_API_URL || 'http://localhost:8080', {
+      // Determine socket server URL. The API URL may include an `/api` path
+      // which would be treated as a Socket.IO namespace and cause an
+      // "Invalid namespace" error. Strip the trailing `/api` if present.
+      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+      const socketUrl = apiUrl.replace(/\/api$/, '');
+
+      const newSocket = io(socketUrl, {
         withCredentials: true,
       });
 
