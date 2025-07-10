@@ -34,22 +34,13 @@ export const accessChat = async (userId) => {
  * @param {File} avatar - Optional group avatar
  * @returns {Promise<Object>} Group chat data
  */
-export const createGroupChat = async (users, name, avatar = null) => {
+export const createGroupChat = async (users, name) => {
   try {
-    const formData = new FormData();
-    formData.append('name', name);
-    formData.append('users', JSON.stringify(users));
-    
-    if (avatar) {
-      formData.append('avatar', avatar);
-    }
-    
-    const response = await axios.post(`${API_URL}/chats/group`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
+    const response = await axios.post(`${API_URL}/chats/group`, {
+      name,
+      users,
     });
-    
+
     return response.data;
   } catch (error) {
     throw error.response?.data || { message: 'Failed to create group chat' };
