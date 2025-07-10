@@ -227,11 +227,11 @@ export const ChatProvider = ({ children }) => {
     }
   };
 
-  const createNewGroupChat = async (users, name, avatar = null) => {
+  const createNewGroupChat = async (users, name) => {
     setChatLoading(true);
     setError(null);
     try {
-      const data = await createGroupChat(users, name, avatar);
+      const data = await createGroupChat(users, name);
       setChats([data, ...chats]);
       return data;
     } catch (err) {

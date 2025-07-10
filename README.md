@@ -139,7 +139,7 @@ The application comes with two test accounts:
 
 - **File:** `client/src/components/modals/CreateGroupModal.js`
   - Fixed parameter order from `createGroupChat(groupName, userIds)` to `createGroupChat(userIds, groupName)`
-  - This aligns with the `chatService.createGroupChat(users, name, avatar)` function signature
+  - This aligns with the `chatService.createGroupChat(users, name)` function signature
 
 **How Group Creation Works:**
 1. User clicks "Create Group" button in the chat sidebar
@@ -147,7 +147,7 @@ The application comes with two test accounts:
 3. User searches and selects at least 2 users from the search results
 4. On form submission, the modal calls `createGroupChat(userIds, groupName)` from `useChat`
 5. This triggers `createNewGroupChat` in `ChatContext` which calls `chatService.createGroupChat`
-6. The service sends a POST request to `/api/chats/group` with FormData containing users and group name
+6. The service sends a POST request to `/api/chats/group` with a JSON payload containing users and the group name
 7. Backend creates the group chat and returns the new chat object
 8. Frontend updates the chat list and closes the modal
 
