@@ -78,7 +78,7 @@ const CreateGroupModal = ({ isOpen, onClose }) => {
     try {
       setLoading(true);
       const userIds = selectedUsers.map(user => user._id);
-      await createGroupChat(groupName, userIds);
+      await createGroupChat(userIds, groupName);
       onClose();
       // Reset form
       setGroupName('');

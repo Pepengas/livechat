@@ -452,6 +452,7 @@ export const ChatProvider = ({ children }) => {
     fetchChats,
     fetchMessages,
     createOrAccessChat,
+    createGroupChat: createNewGroupChat,
     createNewGroupChat,
     updateGroupName,
     addUserToGroup,

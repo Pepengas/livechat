@@ -92,5 +92,51 @@ The application comes with two test accounts:
 - Email: test1@example.com, Password: password123
 - Email: test2@example.com, Password: password123
 
+## Recent Bug Fixes and Improvements
+
+### Group Creation Functionality Fix (Latest)
+
+**Issue:** The "Create Group" button was not working due to function name mismatch and parameter order issues.
+
+**Root Causes:**
+1. **Function Export Mismatch:** The `CreateGroupModal` component was calling `createGroupChat` from the `useChat` hook, but the `ChatContext` only exported `createNewGroupChat`.
+2. **Parameter Order Issue:** The modal was passing parameters as `createGroupChat(groupName, userIds)` but the `chatService.createGroupChat` function expects `(users, name, avatar)`.
+
+**Fixes Applied:**
+- **File:** `client/src/contexts/ChatContext.js`
+  - Added alias `createGroupChat: createNewGroupChat` to the context value export
+  - This maintains backward compatibility while providing the expected function name
+
+- **File:** `client/src/components/modals/CreateGroupModal.js`
+  - Fixed parameter order from `createGroupChat(groupName, userIds)` to `createGroupChat(userIds, groupName)`
+  - This aligns with the `chatService.createGroupChat(users, name, avatar)` function signature
+
+**How Group Creation Works:**
+1. User clicks "Create Group" button in the chat sidebar
+2. `CreateGroupModal` opens with form fields for group name and user selection
+3. User searches and selects at least 2 users from the search results
+4. On form submission, the modal calls `createGroupChat(userIds, groupName)` from `useChat`
+5. This triggers `createNewGroupChat` in `ChatContext` which calls `chatService.createGroupChat`
+6. The service sends a POST request to `/api/chats/group` with FormData containing users and group name
+7. Backend creates the group chat and returns the new chat object
+8. Frontend updates the chat list and closes the modal
+
+**Testing:**
+- Group creation now works properly
+- Users can successfully create group chats with multiple participants
+- Real-time updates work correctly for all group members
+
+### Previous Fixes
+
+**CORS and API URL Issues:**
+- Fixed `client/.env.production` to point to correct Railway domain
+- Resolved CORS errors preventing frontend-backend communication
+- Registration and login functionality now works properly
+
+**Development Environment:**
+- Fixed webpack dev server configuration issues
+- Added `DANGEROUSLY_DISABLE_HOST_CHECK=true` for local development
+- Development server now starts successfully on `http://localhost:3000`
+
 ## License
 MIT
