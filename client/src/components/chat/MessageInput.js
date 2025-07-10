@@ -18,11 +18,11 @@ const MessageInput = ({ chatId, onTyping }) => {
     if (!socket) return;
 
     if (isTyping) {
-      socket.emit('typing', { chatId });
+      socket.emit('typing', chatId);
     }
 
     if (debouncedTyping === false && isTyping) {
-      socket.emit('stop:typing', { chatId });
+      socket.emit('stop-typing', chatId);
       setIsTyping(false);
     }
   }, [isTyping, debouncedTyping, socket, chatId]);
@@ -94,7 +94,7 @@ const MessageInput = ({ chatId, onTyping }) => {
     try {
       // Stop typing indicator
       if (socket) {
-        socket.emit('stop:typing', { chatId });
+        socket.emit('stop-typing', chatId);
       }
       
       // Send message (attachments not yet supported)
