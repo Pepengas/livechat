@@ -68,7 +68,7 @@ const ChatArea = ({ toggleMobileMenu, openUserProfileModal, openGroupInfoModal }
       return selectedChat.name;
     }
     
-    const otherUser = selectedChat.participants.find(
+    const otherUser = selectedChat.users.find(
       (p) => p._id !== currentUser._id
     );
     
@@ -80,10 +80,10 @@ const ChatArea = ({ toggleMobileMenu, openUserProfileModal, openGroupInfoModal }
     if (!selectedChat) return '';
     
     if (selectedChat.isGroupChat) {
-      return `${selectedChat.participants.length} members`;
+      return `${selectedChat.users.length} members`;
     }
     
-    const otherUser = selectedChat.participants.find(
+    const otherUser = selectedChat.users.find(
       (p) => p._id !== currentUser._id
     );
     
@@ -100,7 +100,7 @@ const ChatArea = ({ toggleMobileMenu, openUserProfileModal, openGroupInfoModal }
       return selectedChat.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedChat.name)}&background=random`;
     }
     
-    const otherUser = selectedChat.participants.find(
+    const otherUser = selectedChat.users.find(
       (p) => p._id !== currentUser._id
     );
     
@@ -135,7 +135,7 @@ const ChatArea = ({ toggleMobileMenu, openUserProfileModal, openGroupInfoModal }
     if (selectedChat.isGroupChat) {
       openGroupInfoModal();
     } else {
-      const otherUser = selectedChat.participants.find(
+      const otherUser = selectedChat.users.find(
         (p) => p._id !== currentUser._id
       );
       
@@ -187,7 +187,7 @@ const ChatArea = ({ toggleMobileMenu, openUserProfileModal, openGroupInfoModal }
               ) : (
                 <button 
                   onClick={() => {
-                    const otherUser = selectedChat.participants.find(
+                    const otherUser = selectedChat.users.find(
                       (p) => p._id !== currentUser._id
                     );
                     if (otherUser) {
