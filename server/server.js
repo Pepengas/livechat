@@ -76,16 +76,17 @@ mongoose
   .connect(process.env.MONGODB_URI)
   .then(() => {
     console.log('Connected to MongoDB');
-    
-    // Start server
-    const PORT = process.env.PORT || 8080;
-    server.listen(PORT, '0.0.0.0', () => {
-      console.log(`Server running on port ${PORT}`);
-    });
   })
   .catch((error) => {
     console.error('MongoDB connection error:', error);
+    console.log('Continuing without MongoDB for development...');
   });
+
+// Start server regardless of MongoDB connection
+const PORT = process.env.PORT || 8080;
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server running on port ${PORT}`);
+});
 
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err) => {
