@@ -253,12 +253,12 @@ export const ChatProvider = ({ children }) => {
     setError(null);
     try {
       const data = await accessChat(userId);
-      
+
       // Check if chat already exists in the list
       const chatExists = chats.find(c => c._id === data._id);
-      
+
       if (!chatExists) {
-        setChats([data, ...chats]);
+        setChats(prev => [data, ...prev]);
       }
       
       setSelectedChat(data);
@@ -277,7 +277,7 @@ export const ChatProvider = ({ children }) => {
     setError(null);
     try {
       const data = await createGroupChat(users, name);
-      setChats([data, ...chats]);
+      setChats(prev => [data, ...prev]);
       return data;
     } catch (err) {
       setError(err.message || 'Failed to create group chat');
@@ -294,9 +294,11 @@ export const ChatProvider = ({ children }) => {
       const data = await renameGroup(chatId, name);
       
       // Update chats list
-      setChats(chats.map(chat => 
-        chat._id === chatId ? data : chat
-      ));
+      setChats(prev =>
+        prev.map(chat =>
+          chat._id === chatId ? data : chat
+        )
+      );
       
       // Update selected chat if it's the one being renamed
       if (selectedChat && selectedChat._id === chatId) {
@@ -319,9 +321,11 @@ export const ChatProvider = ({ children }) => {
       const data = await addToGroup(chatId, userId);
       
       // Update chats list
-      setChats(chats.map(chat => 
-        chat._id === chatId ? data : chat
-      ));
+      setChats(prev =>
+        prev.map(chat =>
+          chat._id === chatId ? data : chat
+        )
+      );
       
       // Update selected chat if it's the one being modified
       if (selectedChat && selectedChat._id === chatId) {
@@ -344,9 +348,11 @@ export const ChatProvider = ({ children }) => {
       const data = await removeFromGroup(chatId, userId);
       
       // Update chats list
-      setChats(chats.map(chat => 
-        chat._id === chatId ? data : chat
-      ));
+      setChats(prev =>
+        prev.map(chat =>
+          chat._id === chatId ? data : chat
+        )
+      );
       
       // Update selected chat if it's the one being modified
       if (selectedChat && selectedChat._id === chatId) {
@@ -369,7 +375,7 @@ export const ChatProvider = ({ children }) => {
       await leaveGroup(chatId);
       
       // Remove chat from list
-      setChats(chats.filter(chat => chat._id !== chatId));
+      setChats(prev => prev.filter(chat => chat._id !== chatId));
       
       // Clear selected chat if it's the one being left
       if (selectedChat && selectedChat._id === chatId) {
