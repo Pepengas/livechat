@@ -9,6 +9,7 @@ A real-time live chat web application for internal office communication between 
 - Private Messages (1:1 chat between coworkers)
 - Group Chats (create, join, and leave group chats)
 - Real-time Messaging (using Socket.IO)
+- File and image attachments (up to 5MB)
 - Online Status indicator (show who's online/offline)
 - Message Timestamps
 - Responsive Design (usable on desktop and mobile)
@@ -16,7 +17,6 @@ A real-time live chat web application for internal office communication between 
 ### Optional Features
 - Typing indicators ("X is typing...")
 - Emoji support
-- File/image attachment support (PDF, images)
 - Message search in conversation
 - Admin dashboard to manage users and rooms
 
