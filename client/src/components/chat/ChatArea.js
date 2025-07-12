@@ -146,18 +146,18 @@ const ChatArea = ({ toggleMobileMenu, openUserProfileModal, openGroupInfoModal }
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-gray-50">
+    <div className="flex-1 flex flex-col h-full bg-gray-50 dark:bg-gray-900">
       {selectedChat ? (
         <>
           {/* Chat Header */}
-          <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
+          <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3 flex items-center justify-between">
             <div className="flex items-center">
-              <button 
+              <button
                 onClick={toggleMobileMenu}
-                className="md:hidden p-2 mr-2 rounded-full hover:bg-gray-100"
+                className="md:hidden p-2 mr-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
                 aria-label="Menu"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
               </button>
@@ -168,24 +168,24 @@ const ChatArea = ({ toggleMobileMenu, openUserProfileModal, openGroupInfoModal }
                   className="h-10 w-10 rounded-full object-cover"
                 />
                 <div className="ml-3">
-                  <h2 className="text-lg font-semibold text-gray-800">{getChatName()}</h2>
-                  <p className="text-sm text-gray-500">{getChatStatus()}</p>
+                  <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">{getChatName()}</h2>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">{getChatStatus()}</p>
                 </div>
               </div>
             </div>
             <div>
               {selectedChat.isGroupChat ? (
-                <button 
+                <button
                   onClick={openGroupInfoModal}
-                  className="p-2 rounded-full hover:bg-gray-100"
+                  className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
                   aria-label="Group Info"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </button>
               ) : (
-                <button 
+                <button
                   onClick={() => {
                     const otherUser = selectedChat.users.find(
                       (p) => p._id !== currentUser._id
@@ -194,10 +194,10 @@ const ChatArea = ({ toggleMobileMenu, openUserProfileModal, openGroupInfoModal }
                       openUserProfileModal(otherUser);
                     }
                   }}
-                  className="p-2 rounded-full hover:bg-gray-100"
+                  className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
                   aria-label="User Info"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
                 </button>
@@ -212,7 +212,7 @@ const ChatArea = ({ toggleMobileMenu, openUserProfileModal, openGroupInfoModal }
                 <LoadingSpinner />
               </div>
             ) : messages.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full text-gray-500">
+              <div className="flex flex-col items-center justify-center h-full text-gray-500 dark:text-gray-400">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                 </svg>
@@ -232,7 +232,7 @@ const ChatArea = ({ toggleMobileMenu, openUserProfileModal, openGroupInfoModal }
           {/* Typing Indicator */}
           {getTypingText() && (
             <div className="px-4 py-2">
-              <div className="typing-indicator text-gray-500 text-sm">
+              <div className="typing-indicator text-gray-500 dark:text-gray-400 text-sm">
                 {getTypingText()}
                 <span></span>
                 <span></span>
@@ -242,7 +242,7 @@ const ChatArea = ({ toggleMobileMenu, openUserProfileModal, openGroupInfoModal }
           )}
           
           {/* Message Input */}
-          <div className="border-t border-gray-200 p-4 bg-white">
+          <div className="border-t border-gray-200 dark:border-gray-700 p-4 bg-white dark:bg-gray-800">
             <MessageInput 
               chatId={selectedChat._id} 
               onTyping={handleTyping} 
@@ -250,12 +250,12 @@ const ChatArea = ({ toggleMobileMenu, openUserProfileModal, openGroupInfoModal }
           </div>
         </>
       ) : (
-        <div className="flex flex-col items-center justify-center h-full bg-gray-50 p-4">
+        <div className="flex flex-col items-center justify-center h-full bg-gray-50 dark:bg-gray-900 p-4">
           <svg xmlns="http://www.w3.org/2000/svg" className="h-24 w-24 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
           </svg>
-          <h2 className="mt-4 text-xl font-semibold text-gray-700">Welcome to LiveChat</h2>
-          <p className="mt-2 text-gray-500 text-center max-w-md">
+          <h2 className="mt-4 text-xl font-semibold text-gray-700 dark:text-gray-100">Welcome to LiveChat</h2>
+          <p className="mt-2 text-gray-500 dark:text-gray-400 text-center max-w-md">
             Select a chat from the sidebar or search for users to start a new conversation.
           </p>
           <button 

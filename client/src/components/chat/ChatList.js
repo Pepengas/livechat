@@ -69,7 +69,7 @@ const ChatList = ({ chats, openUserProfileModal }) => {
   };
 
   return (
-    <div className="divide-y divide-gray-200">
+    <div className="divide-y divide-gray-200 dark:divide-gray-700">
       {chats.map((chat) => {
         const isSelected = selectedChat && selectedChat._id === chat._id;
         const unreadCount = unreadCounts[chat._id] || 0;
@@ -77,9 +77,9 @@ const ChatList = ({ chats, openUserProfileModal }) => {
         const isOnline = isChatUserOnline(chat);
         
         return (
-          <div 
+          <div
             key={chat._id}
-            className={`p-4 cursor-pointer hover:bg-gray-50 ${isSelected ? 'bg-gray-100' : ''}`}
+            className={`p-4 cursor-pointer bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 ${isSelected ? 'bg-gray-100 dark:bg-gray-700' : ''}`}
             onClick={() => setSelectedChat(chat)}
           >
             <div className="flex items-center">
@@ -95,13 +95,13 @@ const ChatList = ({ chats, openUserProfileModal }) => {
               </div>
               <div className="ml-3 flex-1 overflow-hidden">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-medium text-gray-900 truncate">{chatName}</h3>
-                  <p className="text-xs text-gray-500">
+                  <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{chatName}</h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
                     {formatTime(chat.latestMessage?.createdAt)}
                   </p>
                 </div>
                 <div className="flex items-center justify-between mt-1">
-                  <p className="text-sm text-gray-500 truncate">
+                  <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
                     {getLatestMessagePreview(chat)}
                   </p>
                   {unreadCount > 0 && (
