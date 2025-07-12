@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { format } from 'date-fns';
 import { useChat } from '../../hooks/useChat';
+import ImageModal from '../modals/ImageModal';
 
 const MessageList = ({ messages, currentUser, selectedChat }) => {
   const { deleteMessage } = useChat();
+  const [selectedImage, setSelectedImage] = useState(null);
 
   // Group messages by date
   const groupedMessages = messages.reduce((groups, message) => {
@@ -55,10 +57,11 @@ const MessageList = ({ messages, currentUser, selectedChat }) => {
       case 'image':
         return (
           <div className="mt-2 rounded-lg overflow-hidden">
-            <img 
-              src={attachment.url} 
-              alt={attachment.name || 'Image'} 
-              className="max-w-full h-auto max-h-60 object-contain"
+            <img
+              src={attachment.url}
+              alt={attachment.name || 'Image'}
+              className="max-w-full h-auto max-h-60 object-cover rounded-md shadow cursor-pointer"
+              onClick={() => setSelectedImage(attachment.url)}
             />
             {attachment.name && (
               <div className="text-xs mt-1 text-gray-500">
@@ -134,17 +137,18 @@ const MessageList = ({ messages, currentUser, selectedChat }) => {
   };
 
   return (
-    <div className="space-y-6">
-      {Object.keys(groupedMessages).map((date) => (
-        <div key={date}>
-          <div className="flex justify-center mb-4">
-            <div className="bg-gray-200 rounded-full px-3 py-1 text-xs text-gray-600">
-              {formatDate(date)}
+    <>
+      <div className="space-y-6">
+        {Object.keys(groupedMessages).map((date) => (
+          <div key={date}>
+            <div className="flex justify-center mb-4">
+              <div className="bg-gray-200 rounded-full px-3 py-1 text-xs text-gray-600">
+                {formatDate(date)}
+              </div>
             </div>
-          </div>
-          
-          <div className="space-y-4">
-            {groupedMessages[date].map((message) => {
+
+            <div className="space-y-4">
+              {groupedMessages[date].map((message) => {
               const isSentByMe = message.sender._id === currentUser._id;
               
               return (
@@ -226,7 +230,13 @@ const MessageList = ({ messages, currentUser, selectedChat }) => {
           </div>
         </div>
       ))}
-    </div>
+      </div>
+      <ImageModal
+        isOpen={!!selectedImage}
+        imageUrl={selectedImage}
+        onClose={() => setSelectedImage(null)}
+      />
+    </>
   );
 };
 
