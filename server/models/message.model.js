@@ -10,7 +10,7 @@ const messageSchema = new mongoose.Schema(
     content: {
       type: String,
       trim: true,
-      required: true
+      default: ''
     },
     chat: {
       type: mongoose.Schema.Types.ObjectId,
@@ -27,7 +27,6 @@ const messageSchema = new mongoose.Schema(
       {
         type: {
           type: String,
-          enum: ['image', 'pdf', 'other'],
           required: true
         },
         url: {
