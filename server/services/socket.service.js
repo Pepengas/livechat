@@ -55,13 +55,10 @@ const socketService = (io) => {
       if (!chat.users) return console.log('Chat users not defined');
 
       // Send message to all users in the chat except the sender
+      // Emit only to each user's personal room to avoid duplicate events
       chat.users.forEach((user) => {
         if (user._id !== messageData.sender._id) {
-          // Emit to the specific user's room
           socket.to(user._id).emit('message-received', messageData);
-          
-          // Also emit to the chat room
-          socket.to(chat._id).emit('message-received', messageData);
         }
       });
     });
