@@ -55,7 +55,7 @@ export const createGroupChat = async (users, name) => {
  */
 export const renameGroup = async (chatId, name) => {
   try {
-    const response = await axios.put(`${API_URL}/chats/group/rename`, { chatId, name });
+    const response = await axios.put(`${API_URL}/chats/group/${chatId}`, { name });
     return response.data;
   } catch (error) {
     throw error.response?.data || { message: 'Failed to rename group' };
@@ -70,7 +70,7 @@ export const renameGroup = async (chatId, name) => {
  */
 export const addToGroup = async (chatId, userId) => {
   try {
-    const response = await axios.put(`${API_URL}/chats/group/add`, { chatId, userId });
+    const response = await axios.put(`${API_URL}/chats/group/${chatId}/add`, { userId });
     return response.data;
   } catch (error) {
     throw error.response?.data || { message: 'Failed to add user to group' };
@@ -85,7 +85,7 @@ export const addToGroup = async (chatId, userId) => {
  */
 export const removeFromGroup = async (chatId, userId) => {
   try {
-    const response = await axios.put(`${API_URL}/chats/group/remove`, { chatId, userId });
+    const response = await axios.put(`${API_URL}/chats/group/${chatId}/remove`, { userId });
     return response.data;
   } catch (error) {
     throw error.response?.data || { message: 'Failed to remove user from group' };
@@ -99,7 +99,7 @@ export const removeFromGroup = async (chatId, userId) => {
  */
 export const leaveGroup = async (chatId) => {
   try {
-    const response = await axios.put(`${API_URL}/chats/group/leave`, { chatId });
+    const response = await axios.put(`${API_URL}/chats/group/${chatId}/leave`);
     return response.data;
   } catch (error) {
     throw error.response?.data || { message: 'Failed to leave group' };
