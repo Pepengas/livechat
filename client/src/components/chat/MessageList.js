@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { format } from 'date-fns';
 import { useChat } from '../../hooks/useChat';
 import ImageModal from '../modals/ImageModal';
+import DeleteMessageModal from '../modals/DeleteMessageModal';
 
 const MessageList = ({ messages, currentUser, selectedChat }) => {
   const { deleteMessage } = useChat();
   const [selectedImage, setSelectedImage] = useState(null);
+  const [messageToDelete, setMessageToDelete] = useState(null);
 
   // Group messages by date
   const groupedMessages = messages.reduce((groups, message) => {
@@ -39,14 +41,16 @@ const MessageList = ({ messages, currentUser, selectedChat }) => {
   };
 
   // Handle message deletion
-  const handleDeleteMessage = async (messageId) => {
-    if (window.confirm('Are you sure you want to delete this message?')) {
-      try {
-        await deleteMessage(messageId, selectedChat._id);
-      } catch (err) {
-        console.error('Error deleting message:', err);
-      }
+  const handleDeleteMessage = async (messageId, scope) => {
+    try {
+      await deleteMessage(messageId, selectedChat._id, scope);
+    } catch (err) {
+      console.error('Error deleting message:', err);
     }
+  };
+
+  const openDeleteModal = (messageId) => {
+    setMessageToDelete(messageId);
   };
 
   // Render attachment
@@ -210,17 +214,26 @@ const MessageList = ({ messages, currentUser, selectedChat }) => {
                           </>
                         )}
                         
-                        {isSentByMe && (
-                          <button 
-                            onClick={() => handleDeleteMessage(message._id)}
-                            className="ml-2 text-gray-400 hover:text-red-500"
-                            aria-label="Delete message"
+                        <button
+                          onClick={() => openDeleteModal(message._id)}
+                          className="ml-2 text-gray-400 hover:text-red-500"
+                          aria-label="Delete message"
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-3 w-3"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
                           >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                          </button>
-                        )}
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                            />
+                          </svg>
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -236,8 +249,14 @@ const MessageList = ({ messages, currentUser, selectedChat }) => {
         imageUrl={selectedImage}
         onClose={() => setSelectedImage(null)}
       />
+      <DeleteMessageModal
+        isOpen={!!messageToDelete}
+        onClose={() => setMessageToDelete(null)}
+        onDeleteForMe={() => handleDeleteMessage(messageToDelete, 'me')}
+        onDeleteForEveryone={() => handleDeleteMessage(messageToDelete, 'all')}
+      />
     </>
   );
 };
 
-export default MessageList;
+export default MessageList

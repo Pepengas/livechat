@@ -448,11 +448,11 @@ export const ChatProvider = ({ children }) => {
     }
   };
 
-  const deleteMessageById = async (messageId, chatId) => {
+  const deleteMessageById = async (messageId, chatId, scope = 'all') => {
     setError(null);
     try {
-      const data = await deleteMessage(messageId);
-      
+      const data = await deleteMessage(messageId, scope);
+
       // Remove message from current chat
       setMessages(messages.filter(msg => msg._id !== messageId));
       
