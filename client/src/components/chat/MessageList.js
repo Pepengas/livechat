@@ -5,7 +5,7 @@ import ImageModal from '../modals/ImageModal';
 import DeleteMessageModal from '../modals/DeleteMessageModal';
 
 const MessageList = ({ messages, currentUser, selectedChat }) => {
-  const { deleteMessage } = useChat();
+  const { deleteMessageById } = useChat();
   const [selectedImage, setSelectedImage] = useState(null);
   const [messageToDelete, setMessageToDelete] = useState(null);
 
@@ -43,7 +43,7 @@ const MessageList = ({ messages, currentUser, selectedChat }) => {
   // Handle message deletion
 const handleDeleteMessage = async (messageId, scope) => {
     try {
-      await deleteMessage(messageId, selectedChat._id, scope);
+      await deleteMessageById(messageId, selectedChat._id, scope);
     } catch (err) {
       console.error('Error deleting message:', err);
     }
