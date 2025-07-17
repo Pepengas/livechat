@@ -11,7 +11,7 @@ const ImageModal = ({ isOpen, imageUrl, onClose }) => {
 
   return (
     <div
-      className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 modal-backdrop"
+      className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 modal-backdrop modal-fade-in"
       onClick={handleClick}
     >
       <button
@@ -26,7 +26,7 @@ const ImageModal = ({ isOpen, imageUrl, onClose }) => {
       <img
         src={imageUrl}
         alt="Attachment"
-        className="max-h-[90vh] max-w-full object-contain rounded-lg shadow-lg"
+        className="max-h-[90vh] max-w-full object-contain rounded-lg shadow-lg modal-scale-in"
       />
     </div>
   );
