@@ -41,7 +41,7 @@ const MessageList = ({ messages, currentUser, selectedChat }) => {
   };
 
   // Handle message deletion
-  const handleDeleteMessage = async (messageId, scope) => {
+const handleDeleteMessage = async (messageId, scope) => {
     try {
       await deleteMessage(messageId, selectedChat._id, scope);
     } catch (err) {
