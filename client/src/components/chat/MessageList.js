@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { format } from 'date-fns';
 import { useChat } from '../../hooks/useChat';
 import ImageModal from '../modals/ImageModal';
+import DeleteMessageModal from '../modals/DeleteMessageModal';
 
 const MessageList = ({ messages, currentUser, selectedChat }) => {
   const { deleteMessage } = useChat();
   const [selectedImage, setSelectedImage] = useState(null);
+  const [messageToDelete, setMessageToDelete] = useState(null);
 
   // Group messages by date
   const groupedMessages = messages.reduce((groups, message) => {
@@ -39,16 +41,16 @@ const MessageList = ({ messages, currentUser, selectedChat }) => {
   };
 
   // Handle message deletion
-  const handleDeleteMessage = async (messageId) => {
-    const forEveryone = window.confirm(
-      "Delete for everyone? Click 'OK' for everyone, or 'Cancel' to delete only for you."
-    );
+const handleDeleteMessage = async (messageId, scope) => {
     try {
-      const scope = forEveryone ? 'all' : 'me';
       await deleteMessage(messageId, selectedChat._id, scope);
     } catch (err) {
       console.error('Error deleting message:', err);
     }
+  };
+
+  const openDeleteModal = (messageId) => {
+    setMessageToDelete(messageId);
   };
 
   // Render attachment
@@ -213,7 +215,7 @@ const MessageList = ({ messages, currentUser, selectedChat }) => {
                         )}
                         
                         <button
-                          onClick={() => handleDeleteMessage(message._id)}
+                          onClick={() => openDeleteModal(message._id)}
                           className="ml-2 text-gray-400 hover:text-red-500"
                           aria-label="Delete message"
                         >
@@ -247,8 +249,14 @@ const MessageList = ({ messages, currentUser, selectedChat }) => {
         imageUrl={selectedImage}
         onClose={() => setSelectedImage(null)}
       />
+      <DeleteMessageModal
+        isOpen={!!messageToDelete}
+        onClose={() => setMessageToDelete(null)}
+        onDeleteForMe={() => handleDeleteMessage(messageToDelete, 'me')}
+        onDeleteForEveryone={() => handleDeleteMessage(messageToDelete, 'all')}
+      />
     </>
   );
 };
 
-export default MessageList;
+export default MessageList
