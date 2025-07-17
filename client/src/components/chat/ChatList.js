@@ -124,7 +124,7 @@ const ChatList = ({ chats, openUserProfileModal }) => {
                   }}
                   className="text-xs text-primary-600 hover:text-primary-800"
                 >
-                  View Profile
+                  Profile
                 </button>
               </div>
             )}

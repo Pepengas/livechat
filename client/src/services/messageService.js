@@ -60,9 +60,11 @@ export const markAsRead = async (chatId) => {
  * @param {string} messageId - Message ID
  * @returns {Promise<Object>} Success message and updated latest message
  */
-export const deleteMessage = async (messageId) => {
+export const deleteMessage = async (messageId, scope = 'all') => {
   try {
-    const response = await axios.delete(`${API_URL}/messages/${messageId}`);
+    const response = await axios.delete(
+      `${API_URL}/messages/${messageId}?scope=${scope}`
+    );
     return response.data;
   } catch (error) {
     throw error.response?.data || { message: 'Failed to delete message' };
