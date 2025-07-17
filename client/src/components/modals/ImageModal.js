@@ -25,7 +25,7 @@ const ImageModal = ({ isOpen, imageUrl, onClose }) => {
       </button>
       <img
         src={imageUrl}
-        alt="Attachment"
+        alt="Image"
         className="max-h-[90vh] max-w-full object-contain rounded-lg shadow-lg modal-scale-in"
       />
     </div>
