@@ -73,8 +73,12 @@ const getMessages = async (req, res) => {
       return res.status(403).json({ message: 'Not authorized to view these messages' });
     }
 
-    // Get messages for the chat
-    const messages = await Message.find({ chat: chatId })
+    // Get messages for the chat excluding ones deleted for this user or everyone
+    const messages = await Message.find({
+        chat: chatId,
+        deletedForEveryone: { $ne: true },
+        deletedFor: { $ne: req.user._id }
+      })
       .populate('sender', 'name email avatar')
       .populate('readBy', 'name email avatar')
       .sort({ createdAt: 1 });
@@ -133,36 +137,45 @@ const markAsRead = async (req, res) => {
 const deleteMessage = async (req, res) => {
   try {
     const { id } = req.params;
-    
+    const { scope } = req.query; // 'me' or 'all'
+
     // Find the message
     const message = await Message.findById(id);
-    
+
     if (!message) {
       return res.status(404).json({ message: 'Message not found' });
     }
-    
-    // Check if user is the sender of the message
-    if (message.sender.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: 'Not authorized to delete this message' });
+
+    if (scope === 'me') {
+      // Mark as deleted for this user only
+      if (!message.deletedFor.includes(req.user._id)) {
+        message.deletedFor.push(req.user._id);
+        await message.save();
+      }
+      return res.json({ message: 'Message deleted for you' });
     }
 
-    // Delete the message
+    // Delete for everyone
     await Message.findByIdAndDelete(id);
 
-    // If this was the latest message in the chat, update the latestMessage field
     const chat = await Chat.findById(message.chat);
+    let updatedLatestMessage = null;
     if (chat.latestMessage && chat.latestMessage.toString() === id) {
-      // Find the new latest message
-      const latestMessage = await Message.findOne({ chat: message.chat })
-        .sort({ createdAt: -1 });
+      const latestMessage = await Message.findOne({
+        chat: message.chat,
+        deletedForEveryone: { $ne: true }
+      })
+        .sort({ createdAt: -1 })
+        .populate('sender', 'name email avatar')
+        .populate('readBy', 'name email avatar');
 
-      // Update the chat with the new latest message or null if no messages left
       await Chat.findByIdAndUpdate(message.chat, {
         latestMessage: latestMessage ? latestMessage._id : null,
       });
+      updatedLatestMessage = latestMessage;
     }
 
-    res.json({ message: 'Message deleted successfully' });
+    res.json({ message: 'Message deleted for everyone', updatedLatestMessage });
   } catch (error) {
     console.error('Delete message error:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
