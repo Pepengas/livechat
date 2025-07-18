@@ -146,7 +146,7 @@ const handleDeleteMessage = async (messageId, scope) => {
         {Object.keys(groupedMessages).map((date) => (
           <div key={date}>
             <div className="flex justify-center mb-4">
-              <div className="bg-gray-200 rounded-full px-3 py-1 text-xs text-gray-600">
+              <div className="bg-gray-200 rounded-full px-3 py-1 text-xs text-gray-600 dark:bg-gray-600 dark:text-gray-200">
                 {formatDate(date)}
               </div>
             </div>
@@ -195,19 +195,19 @@ const handleDeleteMessage = async (messageId, scope) => {
                       </div>
                       
                       <div className="flex items-center mt-1">
-                        <span className="text-xs text-gray-500">
+                        <span className="text-xs text-gray-500 dark:text-gray-400">
                           {formatTime(message.createdAt)}
                         </span>
                         
                         {isSentByMe && (
                           <>
-                            <span className="mx-1 text-gray-400">•</span>
+                            <span className="mx-1 text-gray-400 dark:text-gray-500">•</span>
                             {message.readBy.length > 0 ? (
-                              <span className="text-xs text-gray-500">
+                              <span className="text-xs text-gray-500 dark:text-gray-400">
                                 Read
                               </span>
                             ) : (
-                              <span className="text-xs text-gray-500">
+                              <span className="text-xs text-gray-500 dark:text-gray-400">
                                 Delivered
                               </span>
                             )}

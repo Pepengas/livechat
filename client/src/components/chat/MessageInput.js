@@ -175,12 +175,12 @@ const MessageInput = ({ chatId, onTyping }) => {
   };
 
   return (
-    <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+    <div className="p-4 border-t border-gray-200 dark:border-gray-600">
       {/* Attachment previews */}
       {attachments.length > 0 && (
         <div className="flex flex-wrap gap-2 mb-3">
           {previewAttachments.map((attachment, index) => (
-            <div key={index} className="relative bg-gray-100 dark:bg-gray-700 rounded-md p-2 flex items-center">
+            <div key={index} className="relative bg-gray-100 dark:bg-gray-600 rounded-md p-2 flex items-center">
               <div className="mr-2 text-gray-600">
                 {getFileIcon(attachment.type)}
               </div>
@@ -227,7 +227,7 @@ const MessageInput = ({ chatId, onTyping }) => {
           value={message} 
           onChange={handleInputChange} 
           placeholder="Type a message..." 
-          className="flex-1 p-3 rounded-full bg-gray-100 dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 mx-2"
+          className="flex-1 p-3 rounded-full bg-gray-100 dark:bg-gray-600 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 mx-2"
         />
         
         <button 
