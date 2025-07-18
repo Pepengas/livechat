@@ -134,16 +134,16 @@ const ProfileModal = ({ isOpen, onClose }) => {
               onClick={() => fileInputRef.current.click()}
             >
               {avatarPreview ? (
-                <img 
-                  src={avatarPreview} 
-                  alt="Avatar" 
-                  className="w-full h-full object-cover"
+                <img
+                  src={avatarPreview}
+                  alt="Avatar"
+                  className="w-full h-full object-contain"
                 />
               ) : (
-                <img 
+                <img
                   src={`https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random`}
                   alt="Avatar"
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-contain"
                 />
               )}
               <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
