@@ -69,7 +69,7 @@ const ChatList = ({ chats, openUserProfileModal }) => {
   };
 
   return (
-    <div className="divide-y divide-gray-200 dark:divide-gray-700">
+    <div className="divide-y divide-gray-200 dark:divide-gray-600">
       {chats.map((chat) => {
         const isSelected = selectedChat && selectedChat._id === chat._id;
         const unreadCount = unreadCounts[chat._id] || 0;
@@ -79,7 +79,7 @@ const ChatList = ({ chats, openUserProfileModal }) => {
         return (
           <div
             key={chat._id}
-            className={`p-4 cursor-pointer bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 ${isSelected ? 'bg-gray-100 dark:bg-gray-700' : ''}`}
+            className={`p-4 cursor-pointer bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 ${isSelected ? 'bg-gray-100 dark:bg-gray-600' : ''}`}
             onClick={() => setSelectedChat(chat)}
           >
             <div className="flex items-center">
