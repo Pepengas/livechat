@@ -81,10 +81,10 @@ const Sidebar = ({
 
   return (
     <div
-      className={`w-full md:w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col h-full ${isMobileMenuOpen ? 'block' : 'hidden md:flex'}`}
+      className={`w-full md:w-80 bg-white dark:bg-gray-700 border-r border-gray-200 dark:border-gray-600 flex flex-col h-full ${isMobileMenuOpen ? 'block' : 'hidden md:flex'}`}
     >
       {/* Header */}
-      <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+      <div className="p-4 border-b border-gray-200 dark:border-gray-600 flex items-center justify-between">
         <div className="flex items-center">
           <img
             src={currentUser?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser?.name || 'User')}&background=random`}
@@ -99,7 +99,7 @@ const Sidebar = ({
         <div className="flex">
           <button
             onClick={openProfileModal}
-            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
+            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-600"
             aria-label="Profile"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -109,7 +109,7 @@ const Sidebar = ({
           </button>
           <button
             onClick={handleLogout}
-            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 ml-1"
+            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-600 ml-1"
             aria-label="Logout"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -118,7 +118,7 @@ const Sidebar = ({
           </button>
           <button
             onClick={toggleTheme}
-            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 ml-1"
+            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-600 ml-1"
             aria-label="Toggle theme"
           >
             {theme === 'dark' ? (
@@ -143,7 +143,7 @@ const Sidebar = ({
           </button>
           <button
             onClick={toggleMobileMenu}
-            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 ml-1 md:hidden"
+            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-600 ml-1 md:hidden"
             aria-label="Close menu"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -154,12 +154,12 @@ const Sidebar = ({
       </div>
       
       {/* Search */}
-      <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+      <div className="p-4 border-b border-gray-200 dark:border-gray-600">
         <div className="relative">
           <input
             type="text"
             placeholder="Search users..."
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:text-gray-100"
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-500 dark:bg-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:text-gray-100"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
