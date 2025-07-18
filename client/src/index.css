@@ -59,7 +59,7 @@
 
 /* Message bubble styles */
 .message-bubble {
-  @apply max-w-[75%] rounded-lg px-4 py-2 mb-2;
+  @apply max-w-[75%] rounded-lg px-4 py-2 mb-2 break-words;
 }
 
 .message-bubble.sent {
