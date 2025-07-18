@@ -59,15 +59,26 @@
 
 /* Message bubble styles */
 .message-bubble {
-  @apply max-w-[75%] rounded-lg px-4 py-2 mb-2 break-words;
+  /* extra padding on the bottom-right so the timestamp fits without overlapping */
+  @apply relative max-w-[75%] pl-3 pr-9 pt-2 pb-5 mb-1 rounded-lg break-words whitespace-pre-line shadow;
 }
 
 .message-bubble.sent {
-  @apply bg-primary-500 text-white ml-auto rounded-br-none;
+  background-color: #4fa3f7;
+  @apply text-white ml-auto rounded-br-none;
 }
 
 .message-bubble.received {
-  @apply bg-gray-200 text-gray-800 mr-auto rounded-bl-none dark:bg-gray-600 dark:text-gray-100;
+  @apply mr-auto rounded-bl-none text-gray-900 bg-gray-100 dark:text-gray-100;
+  background-color: #f1f1f1;
+}
+
+.dark .message-bubble.received {
+  background-color: #2A2F32;
+}
+
+.message-bubble .timestamp {
+  @apply absolute bottom-1 right-2 text-[10px] text-gray-400;
 }
 
 /* Typing indicator animation */
