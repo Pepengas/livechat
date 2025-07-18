@@ -97,12 +97,12 @@ const CreateGroupModal = ({ isOpen, onClose }) => {
       className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 modal-backdrop modal-fade-in"
       onClick={handleModalClick}
     >
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6 overflow-y-auto max-h-[90vh] modal-scale-in">
+      <div className="bg-white dark:bg-gray-700 rounded-lg shadow-xl w-full max-w-md p-6 overflow-y-auto max-h-[90vh] modal-scale-in">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-800">New Group</h2>
-          <button 
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">New Group</h2>
+          <button
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 focus:outline-none"
+            className="text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-gray-200 focus:outline-none"
             aria-label="Close"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -112,7 +112,7 @@ const CreateGroupModal = ({ isOpen, onClose }) => {
         </div>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md">
+          <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md dark:bg-gray-600 dark:text-red-200">
             {error}
           </div>
         )}
@@ -120,7 +120,7 @@ const CreateGroupModal = ({ isOpen, onClose }) => {
         <form onSubmit={handleSubmit}>
           {/* Group Name */}
           <div className="mb-4">
-            <label htmlFor="groupName" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="groupName" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
               Group Name
             </label>
             <input
@@ -128,7 +128,7 @@ const CreateGroupModal = ({ isOpen, onClose }) => {
               id="groupName"
               value={groupName}
               onChange={(e) => setGroupName(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-gray-600 dark:border-gray-500 dark:text-gray-100"
               placeholder="Enter group name"
               required
             />
@@ -136,7 +136,7 @@ const CreateGroupModal = ({ isOpen, onClose }) => {
 
           {/* User Search */}
           <div className="mb-4">
-            <label htmlFor="userSearch" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="userSearch" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
               Add Users
             </label>
             <input
@@ -144,7 +144,7 @@ const CreateGroupModal = ({ isOpen, onClose }) => {
               id="userSearch"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-gray-600 dark:border-gray-500 dark:text-gray-100"
               placeholder="Search users by name or email"
             />
           </div>
@@ -156,11 +156,11 @@ const CreateGroupModal = ({ isOpen, onClose }) => {
             </div>
           ) : (
             searchResults.length > 0 && (
-              <div className="mb-4 max-h-40 overflow-y-auto border border-gray-200 rounded-md">
+              <div className="mb-4 max-h-40 overflow-y-auto border border-gray-200 dark:border-gray-600 rounded-md">
                 {searchResults.map(user => (
-                  <div 
-                    key={user._id} 
-                    className="flex items-center p-2 hover:bg-gray-100 cursor-pointer"
+                  <div
+                    key={user._id}
+                    className="flex items-center p-2 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer"
                     onClick={() => handleUserSelect(user)}
                   >
                     <img 
@@ -181,14 +181,14 @@ const CreateGroupModal = ({ isOpen, onClose }) => {
           {/* Selected Users */}
           {selectedUsers.length > 0 && (
             <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
                 Selected Users ({selectedUsers.length})
               </label>
               <div className="flex flex-wrap gap-2">
                 {selectedUsers.map(user => (
-                  <div 
-                    key={user._id} 
-                    className="flex items-center bg-gray-100 rounded-full pl-1 pr-2 py-1"
+                  <div
+                    key={user._id}
+                    className="flex items-center bg-gray-100 dark:bg-gray-600 rounded-full pl-1 pr-2 py-1"
                   >
                     <img 
                       src={user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random`} 
@@ -199,7 +199,7 @@ const CreateGroupModal = ({ isOpen, onClose }) => {
                     <button 
                       type="button" 
                       onClick={() => handleUserRemove(user._id)}
-                      className="text-gray-500 hover:text-red-500 focus:outline-none"
+                      className="text-gray-500 dark:text-gray-300 hover:text-red-500 focus:outline-none"
                       aria-label="Remove user"
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -217,7 +217,7 @@ const CreateGroupModal = ({ isOpen, onClose }) => {
             <button
               type="button"
               onClick={onClose}
-              className="mr-3 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500"
+              className="mr-3 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-100 bg-gray-200 dark:bg-gray-600 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500"
               disabled={loading}
             >
               Cancel

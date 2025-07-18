@@ -100,12 +100,12 @@ const ProfileModal = ({ isOpen, onClose }) => {
       className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 modal-backdrop modal-fade-in"
       onClick={handleModalClick}
     >
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6 overflow-y-auto max-h-[90vh] modal-scale-in">
+      <div className="bg-white dark:bg-gray-700 rounded-lg shadow-xl w-full max-w-md p-6 overflow-y-auto max-h-[90vh] modal-scale-in">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-800">Profile</h2>
-          <button 
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Profile</h2>
+          <button
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 focus:outline-none"
+            className="text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-gray-200 focus:outline-none"
             aria-label="Close"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -115,13 +115,13 @@ const ProfileModal = ({ isOpen, onClose }) => {
         </div>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md">
+          <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md dark:bg-gray-600 dark:text-red-200">
             {error}
           </div>
         )}
 
         {success && (
-          <div className="mb-4 p-3 bg-green-100 text-green-700 rounded-md">
+          <div className="mb-4 p-3 bg-green-100 text-green-700 rounded-md dark:bg-gray-600 dark:text-green-200">
             {success}
           </div>
         )}
@@ -129,8 +129,8 @@ const ProfileModal = ({ isOpen, onClose }) => {
         <form onSubmit={handleSubmit}>
           {/* Avatar */}
           <div className="flex flex-col items-center mb-6">
-            <div 
-              className="relative w-24 h-24 mb-3 rounded-full overflow-hidden bg-gray-200 cursor-pointer"
+            <div
+              className="relative w-24 h-24 mb-3 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-600 cursor-pointer"
               onClick={() => fileInputRef.current.click()}
             >
               {avatarPreview ? (
@@ -160,12 +160,12 @@ const ProfileModal = ({ isOpen, onClose }) => {
               className="hidden" 
               accept="image/*"
             />
-            <p className="text-sm text-gray-500">Click to change avatar</p>
+            <p className="text-sm text-gray-500 dark:text-gray-300">Click to change avatar</p>
           </div>
 
           {/* Name */}
           <div className="mb-4">
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
               Name
             </label>
             <input
@@ -173,14 +173,14 @@ const ProfileModal = ({ isOpen, onClose }) => {
               id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-gray-600 dark:border-gray-500 dark:text-gray-100"
               required
             />
           </div>
 
           {/* Email */}
           <div className="mb-4">
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
               Email
             </label>
             <input
@@ -188,14 +188,14 @@ const ProfileModal = ({ isOpen, onClose }) => {
               id="email"
               value={email}
               disabled
-              className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-500 dark:bg-gray-600 dark:border-gray-500 dark:text-gray-400"
             />
-            <p className="text-xs text-gray-500 mt-1">Email cannot be changed</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Email cannot be changed</p>
           </div>
 
           {/* Password */}
           <div className="mb-4">
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
               New Password
             </label>
             <input
@@ -203,14 +203,14 @@ const ProfileModal = ({ isOpen, onClose }) => {
               id="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-gray-600 dark:border-gray-500 dark:text-gray-100"
               placeholder="Leave blank to keep current password"
             />
           </div>
 
           {/* Confirm Password */}
           <div className="mb-6">
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
               Confirm New Password
             </label>
             <input
@@ -218,7 +218,7 @@ const ProfileModal = ({ isOpen, onClose }) => {
               id="confirmPassword"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-gray-600 dark:border-gray-500 dark:text-gray-100"
               placeholder="Leave blank to keep current password"
             />
           </div>
@@ -228,7 +228,7 @@ const ProfileModal = ({ isOpen, onClose }) => {
             <button
               type="button"
               onClick={onClose}
-              className="mr-3 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500"
+              className="mr-3 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-100 bg-gray-200 dark:bg-gray-600 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500"
               disabled={loading}
             >
               Cancel

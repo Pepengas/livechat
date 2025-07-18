@@ -32,12 +32,12 @@ const UserProfileModal = ({ isOpen, onClose, user }) => {
       className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 modal-backdrop modal-fade-in"
       onClick={handleModalClick}
     >
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6 overflow-y-auto max-h-[90vh] modal-scale-in">
+      <div className="bg-white dark:bg-gray-700 rounded-lg shadow-xl w-full max-w-md p-6 overflow-y-auto max-h-[90vh] modal-scale-in">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-800">Profile</h2>
-          <button 
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Profile</h2>
+          <button
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 focus:outline-none"
+            className="text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-gray-200 focus:outline-none"
             aria-label="Close"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -48,7 +48,7 @@ const UserProfileModal = ({ isOpen, onClose, user }) => {
 
         <div className="flex flex-col items-center mb-6">
           <div className="relative mb-4">
-            <div className="w-32 h-32 rounded-full overflow-hidden bg-gray-200">
+            <div className="w-32 h-32 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-600">
               <img 
                 src={user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random&size=256`} 
                 alt={user.name}
@@ -59,15 +59,15 @@ const UserProfileModal = ({ isOpen, onClose, user }) => {
               <div className="absolute bottom-1 right-1 h-4 w-4 bg-green-500 rounded-full border-2 border-white"></div>
             )}
           </div>
-          <h3 className="text-xl font-bold text-gray-800">{user.name}</h3>
-          <p className="text-gray-600">{user.email}</p>
+          <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100">{user.name}</h3>
+          <p className="text-gray-600 dark:text-gray-300">{user.email}</p>
           <div className="mt-2 flex items-center">
             <span className={`inline-block h-3 w-3 rounded-full mr-2 ${isOnline ? 'bg-green-500' : 'bg-gray-400'}`}></span>
             <span className="text-sm">{isOnline ? 'Online' : 'Offline'}</span>
           </div>
         </div>
 
-        <div className="border-t border-gray-200 pt-4">
+        <div className="border-t border-gray-200 dark:border-gray-600 pt-4">
           <button
             onClick={handleStartChat}
             className="w-full py-2 px-4 bg-primary-600 text-white rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 flex items-center justify-center"

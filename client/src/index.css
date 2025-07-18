@@ -7,7 +7,7 @@
     @apply h-full;
   }
   body {
-    @apply h-full bg-gray-50 text-gray-900 antialiased dark:bg-gray-900 dark:text-gray-100;
+    @apply h-full bg-gray-50 text-gray-900 antialiased dark:bg-gray-800 dark:text-gray-100;
   }
   #root {
     @apply h-full;
@@ -28,10 +28,10 @@
     @apply bg-red-600 text-white hover:bg-red-700;
   }
   .input {
-    @apply block w-full rounded-md border border-gray-300 px-3 py-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-300;
+    @apply block w-full rounded-md border border-gray-300 px-3 py-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-600 dark:border-gray-500 dark:text-gray-100 dark:placeholder-gray-300;
   }
   .card {
-    @apply rounded-lg bg-white shadow dark:bg-gray-800;
+    @apply rounded-lg bg-white shadow dark:bg-gray-700;
   }
 }
 
@@ -45,13 +45,21 @@
   @apply bg-gray-100;
 }
 
+.dark ::-webkit-scrollbar-track {
+  @apply bg-gray-700;
+}
+
 ::-webkit-scrollbar-thumb {
   @apply bg-gray-300 rounded hover:bg-gray-400;
 }
 
+.dark ::-webkit-scrollbar-thumb {
+  @apply bg-gray-600 rounded hover:bg-gray-500;
+}
+
 /* Message bubble styles */
 .message-bubble {
-  @apply max-w-[75%] rounded-lg px-4 py-2 mb-2;
+  @apply max-w-[75%] rounded-lg px-4 py-2 mb-2 break-words;
 }
 
 .message-bubble.sent {
@@ -59,7 +67,7 @@
 }
 
 .message-bubble.received {
-  @apply bg-gray-200 text-gray-800 mr-auto rounded-bl-none dark:bg-gray-700 dark:text-gray-100;
+  @apply bg-gray-200 text-gray-800 mr-auto rounded-bl-none dark:bg-gray-600 dark:text-gray-100;
 }
 
 /* Typing indicator animation */
