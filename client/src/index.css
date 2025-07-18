@@ -59,7 +59,8 @@
 
 /* Message bubble styles */
 .message-bubble {
-  @apply relative max-w-[75%] px-3 py-2 mb-1 rounded-lg break-words shadow;
+/* extra padding on the bottom-right so the timestamp fits without overlapping */
+  @apply relative max-w-[75%] pl-3 pr-9 pt-2 pb-5 mb-1 rounded-lg break-words whitespace-pre-line shadow;
 }
 
 .message-bubble.sent {
