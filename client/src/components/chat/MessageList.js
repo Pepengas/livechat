@@ -56,7 +56,7 @@ const handleDeleteMessage = async (messageId, scope) => {
   // Render attachment
   const renderAttachment = (attachment) => {
     const type = attachment.type.split('/')[0];
-    
+
     switch (type) {
       case 'image':
         return (
@@ -64,7 +64,7 @@ const handleDeleteMessage = async (messageId, scope) => {
             <img
               src={attachment.url}
               alt={attachment.name || 'Image'}
-              className="max-w-full h-auto max-h-60 object-cover rounded-md shadow cursor-pointer"
+              className="max-w-full h-auto max-h-60 object-cover rounded-md shadow cursor-pointer transition-transform hover:scale-105"
               onClick={() => setSelectedImage(attachment.url)}
             />
             {attachment.name && (
@@ -77,8 +77,8 @@ const handleDeleteMessage = async (messageId, scope) => {
       case 'video':
         return (
           <div className="mt-2">
-            <video 
-              controls 
+            <video
+              controls
               className="max-w-full rounded-lg max-h-60"
             >
               <source src={attachment.url} type={attachment.type} />
@@ -107,7 +107,7 @@ const handleDeleteMessage = async (messageId, scope) => {
         );
       default:
         return (
-          <div className="mt-2 p-3 bg-gray-100 rounded-lg flex items-center">
+          <div className="mt-2 p-3 bg-gray-100 rounded-lg flex items-center hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
@@ -151,7 +151,7 @@ const handleDeleteMessage = async (messageId, scope) => {
               </div>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-2">
               {groupedMessages[date].map((message) => {
               const isSentByMe = message.sender._id === currentUser._id;
               
@@ -178,11 +178,11 @@ const handleDeleteMessage = async (messageId, scope) => {
                         </div>
                       )}
                       
-                      <div 
+                      <div
                         className={`message-bubble ${isSentByMe ? 'sent' : 'received'}`}
                       >
                         {message.content && <div>{message.content}</div>}
-                        
+
                         {message.attachments && message.attachments.length > 0 && (
                           <div className="space-y-2">
                             {message.attachments.map((attachment, index) => (
@@ -192,12 +192,11 @@ const handleDeleteMessage = async (messageId, scope) => {
                             ))}
                           </div>
                         )}
+
+                        <div className="timestamp">{formatTime(message.createdAt)}</div>
                       </div>
-                      
+
                       <div className="flex items-center mt-1">
-                        <span className="text-xs text-gray-500 dark:text-gray-400">
-                          {formatTime(message.createdAt)}
-                        </span>
                         
                         {isSentByMe && (
                           <>
