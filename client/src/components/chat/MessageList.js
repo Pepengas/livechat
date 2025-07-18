@@ -181,7 +181,11 @@ const handleDeleteMessage = async (messageId, scope) => {
                       <div
                         className={`message-bubble ${isSentByMe ? 'sent' : 'received'}`}
                       >
-                        {message.content && <div>{message.content}</div>}
+                        {message.content && (
+                          <div className="whitespace-pre-line break-words">
+                            {message.content}
+                          </div>
+                        )}
 
                         {message.attachments && message.attachments.length > 0 && (
                           <div className="space-y-2">
