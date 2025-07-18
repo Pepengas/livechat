@@ -180,12 +180,12 @@ const GroupInfoModal = ({ isOpen, onClose, chat }) => {
       className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 modal-backdrop modal-fade-in"
       onClick={handleModalClick}
     >
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6 overflow-y-auto max-h-[90vh] modal-scale-in">
+      <div className="bg-white dark:bg-gray-700 rounded-lg shadow-xl w-full max-w-md p-6 overflow-y-auto max-h-[90vh] modal-scale-in">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-800">Group</h2>
-          <button 
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Group</h2>
+          <button
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 focus:outline-none"
+            className="text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-gray-200 focus:outline-none"
             aria-label="Close"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -195,13 +195,13 @@ const GroupInfoModal = ({ isOpen, onClose, chat }) => {
         </div>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md">
+          <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md dark:bg-gray-600 dark:text-red-200">
             {error}
           </div>
         )}
 
         {success && (
-          <div className="mb-4 p-3 bg-green-100 text-green-700 rounded-md">
+          <div className="mb-4 p-3 bg-green-100 text-green-700 rounded-md dark:bg-gray-600 dark:text-green-200">
             {success}
           </div>
         )}
@@ -209,7 +209,7 @@ const GroupInfoModal = ({ isOpen, onClose, chat }) => {
         {/* Group Avatar */}
         <div className="flex flex-col items-center mb-6">
           <div 
-            className={`relative w-24 h-24 mb-3 rounded-full overflow-hidden bg-gray-200 ${isAdmin ? 'cursor-pointer' : ''}`}
+            className={`relative w-24 h-24 mb-3 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-600 ${isAdmin ? 'cursor-pointer' : ''}`}
             onClick={isAdmin ? () => fileInputRef.current.click() : undefined}
           >
             {avatarPreview ? (
@@ -258,7 +258,7 @@ const GroupInfoModal = ({ isOpen, onClose, chat }) => {
 
         {/* Group Name */}
         <div className="mb-6">
-          <label htmlFor="groupName" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="groupName" className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
             Group Name
           </label>
           <div className="flex">
@@ -267,7 +267,7 @@ const GroupInfoModal = ({ isOpen, onClose, chat }) => {
               id="groupName"
               value={groupName}
               onChange={(e) => setGroupName(e.target.value)}
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="flex-1 px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-gray-600 dark:border-gray-500 dark:text-gray-100"
               disabled={!isAdmin || loading}
             />
             {isAdmin && (
@@ -284,8 +284,8 @@ const GroupInfoModal = ({ isOpen, onClose, chat }) => {
 
         {/* Group Admin */}
         <div className="mb-6">
-          <h3 className="text-sm font-medium text-gray-700 mb-2">Group Admin</h3>
-          <div className="flex items-center p-3 bg-gray-50 rounded-md">
+          <h3 className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">Group Admin</h3>
+          <div className="flex items-center p-3 bg-gray-50 dark:bg-gray-600 rounded-md">
             <img 
               src={chat.groupAdmin?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(chat.groupAdmin?.name)}&background=random`} 
               alt={chat.groupAdmin?.name}
@@ -293,26 +293,26 @@ const GroupInfoModal = ({ isOpen, onClose, chat }) => {
             />
             <div>
               <div className="font-medium">{chat.groupAdmin?.name}</div>
-              <div className="text-xs text-gray-500">{chat.groupAdmin?.email}</div>
+              <div className="text-xs text-gray-500 dark:text-gray-400">{chat.groupAdmin?.email}</div>
             </div>
           </div>
         </div>
 
         {/* Group Members */}
         <div className="mb-6">
-          <h3 className="text-sm font-medium text-gray-700 mb-2">
+          <h3 className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
             Group Members ({chat.users.length})
           </h3>
-          <div className="max-h-60 overflow-y-auto border border-gray-200 rounded-md">
+          <div className="max-h-60 overflow-y-auto border border-gray-200 dark:border-gray-600 rounded-md">
             {chat.users.map(user => {
               const isUserAdmin = user._id === chat.groupAdmin?._id;
               const isCurrentUser = user._id === currentUser._id;
               const online = isUserOnline(user._id);
               
               return (
-                <div 
-                  key={user._id} 
-                  className="flex items-center justify-between p-3 hover:bg-gray-50 border-b border-gray-200 last:border-b-0"
+                <div
+                  key={user._id}
+                  className="flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-gray-600 border-b border-gray-200 dark:border-gray-600 last:border-b-0"
                 >
                   <div className="flex items-center">
                     <div className="relative">
@@ -334,12 +334,12 @@ const GroupInfoModal = ({ isOpen, onClose, chat }) => {
                           </span>
                         )}
                         {isCurrentUser && (
-                          <span className="ml-2 px-2 py-0.5 text-xs bg-gray-100 text-gray-800 rounded-full">
+                          <span className="ml-2 px-2 py-0.5 text-xs bg-gray-100 text-gray-800 rounded-full dark:bg-gray-600 dark:text-gray-100">
                             You
                           </span>
                         )}
                       </div>
-                      <div className="text-xs text-gray-500 flex items-center">
+                      <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center">
                         <span className={`inline-block h-2 w-2 rounded-full mr-1 ${online ? 'bg-green-500' : 'bg-gray-400'}`}></span>
                         <span>{online ? 'Online' : 'Offline'}</span>
                       </div>
@@ -367,12 +367,12 @@ const GroupInfoModal = ({ isOpen, onClose, chat }) => {
         {/* Add Users (Admin only) */}
         {isAdmin && (
           <div className="mb-6">
-            <h3 className="text-sm font-medium text-gray-700 mb-2">Add Users</h3>
+            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">Add Users</h3>
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 mb-2"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-gray-600 dark:border-gray-500 dark:text-gray-100 mb-2"
               placeholder="Search users by name or email"
               disabled={loading}
             />
@@ -383,11 +383,11 @@ const GroupInfoModal = ({ isOpen, onClose, chat }) => {
               </div>
             ) : (
               searchResults.length > 0 && (
-                <div className="max-h-40 overflow-y-auto border border-gray-200 rounded-md">
+                <div className="max-h-40 overflow-y-auto border border-gray-200 dark:border-gray-600 rounded-md">
                   {searchResults.map(user => (
-                    <div 
-                      key={user._id} 
-                      className="flex items-center justify-between p-3 hover:bg-gray-50 border-b border-gray-200 last:border-b-0"
+                    <div
+                      key={user._id}
+                      className="flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-gray-600 border-b border-gray-200 dark:border-gray-600 last:border-b-0"
                     >
                       <div className="flex items-center">
                         <img 
@@ -397,7 +397,7 @@ const GroupInfoModal = ({ isOpen, onClose, chat }) => {
                         />
                         <div>
                           <div className="font-medium">{user.name}</div>
-                          <div className="text-xs text-gray-500">{user.email}</div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400">{user.email}</div>
                         </div>
                       </div>
                       <button
@@ -418,7 +418,7 @@ const GroupInfoModal = ({ isOpen, onClose, chat }) => {
         )}
 
         {/* Leave Group */}
-        <div className="border-t border-gray-200 pt-4">
+        <div className="border-t border-gray-200 dark:border-gray-600 pt-4">
           <button
             onClick={handleLeaveGroup}
             className="w-full py-2 px-4 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 flex items-center justify-center"
