@@ -57,6 +57,9 @@ export function LoginForm({
     }
   };
 
+  const handleRegister = () => {
+    navigate('/register');
+  };
   return (
     <form className="w-full space-y-6" onSubmit={handleSubmit}>
       {errorMessage && (
@@ -112,6 +115,13 @@ export function LoginForm({
         className="w-full py-3 mt-8 text-white transition-all duration-200 transform bg-blue-600 rounded-lg shadow-lg hover:bg-blue-700 hover:scale-[1.02] active:scale-[0.98]"
       >
         Login
+      </button>
+ <button
+        type="button"
+        onClick={handleRegister}
+        className="w-full py-3 text-white transition-all duration-200 transform bg-green-600 rounded-lg shadow-lg hover:bg-green-700 hover:scale-[1.02] active:scale-[0.98]"
+      >
+        Register
       </button>
       <div className="mt-4 text-sm text-center text-white">
         <p>For demo: use demo@example.com / password123</p>
