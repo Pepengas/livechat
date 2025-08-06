@@ -60,7 +60,6 @@ export function LoginForm({
   const handleRegister = () => {
     navigate('/register');
   };
-
   return (
     <form className="w-full space-y-6" onSubmit={handleSubmit}>
       {errorMessage && (
@@ -117,7 +116,7 @@ export function LoginForm({
       >
         Login
       </button>
-      <button
+ <button
         type="button"
         onClick={handleRegister}
         className="w-full py-3 text-white transition-all duration-200 transform bg-green-600 rounded-lg shadow-lg hover:bg-green-700 hover:scale-[1.02] active:scale-[0.98]"
