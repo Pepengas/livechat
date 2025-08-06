@@ -32,6 +32,10 @@ module.exports = {
           800: '#1e293b',
           900: '#0f172a',
         },
+        navy: {
+          800: '#1a2b47',
+          600: '#2a3c58',
+        },
       },
       fontFamily: {
         sans: ['Inter', 'sans-serif'],
