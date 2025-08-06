@@ -40,7 +40,8 @@ export function LoginForm({
       setErrorMessage('Please fill in all fields');
       return;
     }
-    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    // Use a stricter email pattern that properly escapes hyphen characters
+    const emailRegex = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/;
     if (!emailRegex.test(emailValue)) {
       setErrorMessage('Please enter a valid email address');
       onLoginAttempt(false);
@@ -73,7 +74,7 @@ export function LoginForm({
           id="email"
           ref={emailInputRef}
           type="text"
-          pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
+          pattern="[a-zA-Z0-9._%+\\-]+@[a-zA-Z0-9.\\-]+\\.[a-zA-Z]{2,}$"
           value={emailValue}
           onChange={(e) => setEmailValue(e.target.value)}
           onFocus={handleEmailFocus}
