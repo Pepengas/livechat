@@ -67,6 +67,9 @@ const login = async (req, res) => {
     // Find user by email
     const user = await User.findOne({ email: normalizedEmail }).select('+password');
 
+    // Find user by email
+    const user = await User.findOne({ email: normalizedEmail }).select('+password');
+
     // Check if user exists and password matches
     if (user && (await user.comparePassword(password))) {
       // Update user status to online
