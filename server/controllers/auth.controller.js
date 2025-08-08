@@ -29,21 +29,21 @@ const register = async (req, res) => {
     }
 
     // Create new user
-    const user = await User.create({
+    const newUser = await User.create({
       name,
       email: normalizedEmail,
       password,
     });
 
-    if (user) {
+    if (newUser) {
       res.status(201).json({
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        avatar: user.avatar,
-        role: user.role,
-        status: user.status,
-        token: generateToken(user._id),
+        _id: newUser._id,
+        name: newUser.name,
+        email: newUser.email,
+        avatar: newUser.avatar,
+        role: newUser.role,
+        status: newUser.status,
+        token: generateToken(newUser._id),
       });
     } else {
       res.status(400).json({ message: 'Invalid user data' });
@@ -64,27 +64,24 @@ const login = async (req, res) => {
     const { email, password } = req.body;
     const normalizedEmail = email.trim().toLowerCase();
 
-    // Find user by email
-    const user = await User.findOne({ email: normalizedEmail }).select('+password');
-
-    // Find user by email
-    const user = await User.findOne({ email: normalizedEmail }).select('+password');
+   // Find user by email
+    const existingUser = await User.findOne({ email: normalizedEmail }).select('+password');
 
     // Check if user exists and password matches
-    if (user && (await user.comparePassword(password))) {
+    if (existingUser && (await existingUser.comparePassword(password))) {
       // Update user status to online
-      user.status = 'online';
-      user.lastActive = Date.now();
-      await user.save();
+      existingUser.status = 'online';
+      existingUser.lastActive = Date.now();
+      await existingUser.save();
 
       res.json({
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        avatar: user.avatar,
-        role: user.role,
-        status: user.status,
-        token: generateToken(user._id),
+        _id: existingUser._id,
+        name: existingUser.name,
+        email: existingUser.email,
+        avatar: existingUser.avatar,
+        role: existingUser.role,
+        status: existingUser.status,
+        token: generateToken(existingUser._id),
       });
     } else {
       res.status(401).json({ message: 'Invalid email or password' });
