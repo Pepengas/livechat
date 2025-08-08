@@ -18,9 +18,10 @@ const generateToken = (id) => {
 const register = async (req, res) => {
   try {
     const { name, email, password } = req.body;
+    const normalizedEmail = email.toLowerCase();
 
     // Check if user already exists
-    const userExists = await User.findOne({ email });
+    const userExists = await User.findOne({ email: normalizedEmail });
 
     if (userExists) {
       return res.status(400).json({ message: 'User already exists' });
@@ -29,7 +30,7 @@ const register = async (req, res) => {
     // Create new user
     const user = await User.create({
       name,
-      email,
+      email: normalizedEmail,
       password,
     });
 
@@ -60,9 +61,10 @@ const register = async (req, res) => {
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
+    const normalizedEmail = email.toLowerCase();
 
     // Find user by email
-    const user = await User.findOne({ email }).select('+password');
+    const user = await User.findOne({ email: normalizedEmail }).select('+password');
 
     // Check if user exists and password matches
     if (user && (await user.comparePassword(password))) {
