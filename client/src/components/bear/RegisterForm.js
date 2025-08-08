@@ -16,6 +16,7 @@ export function RegisterForm({
   setConfirmPasswordValue,
   setIsPasswordVisible,
   setIsConfirmPasswordVisible,
+  setIsNameFocused,
   setIsEmailFocused,
   setIsPasswordFocused,
   setIsConfirmPasswordFocused,
@@ -96,6 +97,8 @@ export function RegisterForm({
           type="text"
           value={nameValue}
           onChange={(e) => setNameValue(e.target.value)}
+          onFocus={() => setIsNameFocused(true)}
+          onBlur={() => setIsNameFocused(false)}
           className="w-full px-4 py-3 text-gray-800 transition-all duration-200 bg-white border-0 rounded-lg shadow-md focus:ring-2 focus:ring-blue-400 focus:outline-none"
           placeholder="Your name"
         />

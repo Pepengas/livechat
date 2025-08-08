@@ -9,27 +9,41 @@ const Register = () => {
   const [confirmPasswordValue, setConfirmPasswordValue] = useState('');
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] = useState(false);
+  const [isNameFocused, setIsNameFocused] = useState(false);
   const [isEmailFocused, setIsEmailFocused] = useState(false);
   const [isPasswordFocused, setIsPasswordFocused] = useState(false);
   const [isConfirmPasswordFocused, setIsConfirmPasswordFocused] = useState(false);
   const [cursorPosition, setCursorPosition] = useState(0);
 
   useEffect(() => {
-    if (isEmailFocused) {
-      const emailInput = document.getElementById('email');
-      if (emailInput) {
-        setCursorPosition(emailInput.selectionStart || emailValue.length);
-      } else {
-        setCursorPosition(emailValue.length);
-      }
+    let inputEl = null;
+    let value = '';
+    if (isNameFocused) {
+      inputEl = document.getElementById('name');
+      value = nameValue;
+    } else if (isEmailFocused) {
+      inputEl = document.getElementById('email');
+      value = emailValue;
+    } else {
+      return;
     }
-  }, [emailValue, isEmailFocused]);
+    
+    if (inputEl) {
+      setCursorPosition(inputEl.selectionStart || value.length);
+    } else {
+      setCursorPosition(value.length);
+    }
+    
+   
+  }, [nameValue, emailValue, isNameFocused, isEmailFocused]);
 
   const calculateEyePosition = () => {
-    if (!isEmailFocused) {
+    const isFieldFocused = isNameFocused || isEmailFocused;
+    const value = isNameFocused ? nameValue : emailValue;
+    if (!isFieldFocused) {
       return { x: 0, y: 0 };
     }
-    if (emailValue.length === 0) {
+    if (value.length === 0) {
       return { x: 0, y: 3 };
     }
     const maxHorizontalMove = 12;
@@ -72,6 +86,7 @@ const Register = () => {
           setConfirmPasswordValue={setConfirmPasswordValue}
           setIsPasswordVisible={setIsPasswordVisible}
           setIsConfirmPasswordVisible={setIsConfirmPasswordVisible}
+          setIsNameFocused={setIsNameFocused}
           setIsEmailFocused={setIsEmailFocused}
           setIsPasswordFocused={setIsPasswordFocused}
           setIsConfirmPasswordFocused={setIsConfirmPasswordFocused}
