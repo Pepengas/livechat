@@ -64,7 +64,7 @@ const login = async (req, res) => {
     const { email, password } = req.body;
     const normalizedEmail = email.trim().toLowerCase();
 
-    // Find user by email
+   // Find user by email
     const existingUser = await User.findOne({ email: normalizedEmail }).select('+password');
 
     // Check if user exists and password matches
