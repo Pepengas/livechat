@@ -27,11 +27,14 @@ const Register = () => {
     } else {
       return;
     }
+    
     if (inputEl) {
       setCursorPosition(inputEl.selectionStart || value.length);
     } else {
       setCursorPosition(value.length);
     }
+    
+   
   }, [nameValue, emailValue, isNameFocused, isEmailFocused]);
 
   const calculateEyePosition = () => {
