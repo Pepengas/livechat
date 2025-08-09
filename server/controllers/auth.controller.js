@@ -66,9 +66,17 @@ const register = async (req, res) => {
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
+
+    // Ensure required fields are present before attempting to use them. When
+    // `email` is undefined, calling `trim()` throws an error which previously
+    // resulted in a 500 response.  Return a clear 400 message instead.
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Email and password are required' });
+    }
+
     const normalizedEmail = email.trim().toLowerCase();
 
-   // Find user by email
+    // Find user by email
     const existingUser = await User.findOne({ email: normalizedEmail }).select('+password');
 
     // Check if user exists and password matches
