@@ -102,6 +102,13 @@
   max-width: 85%;
 }
 
+.message-text {
+  white-space: pre-wrap;
+  word-break: normal;
+  overflow-wrap: break-word;
+  display: inline;
+}
+
 @media (min-width: 768px) {
   .bubble {
     max-width: 70%;

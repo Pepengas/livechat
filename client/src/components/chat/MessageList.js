@@ -220,7 +220,9 @@ const MessageList = ({ messages, currentUser, selectedChat }) => {
                           isLast ? 'bubble--tail' : ''
                         }`}
                       >
-                        {message.content && <div>{message.content}</div>}
+                        {message.content && (
+                          <div className="message-text">{message.content}</div>
+                        )}
 
                         {message.attachments && message.attachments.length > 0 && (
                           <div className="space-y-2 mt-2">
