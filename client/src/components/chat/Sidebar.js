@@ -81,7 +81,7 @@ const Sidebar = ({
 
   return (
     <div
-      className={`w-full md:w-80 bg-white dark:bg-gray-700 border-r border-gray-200 dark:border-gray-600 flex flex-col h-full ${isMobileMenuOpen ? 'block' : 'hidden md:flex'}`}
+      className={`w-full md:w-80 bg-gray-200 dark:bg-gray-700 border-r border-gray-200 dark:border-gray-600 flex flex-col h-full ${isMobileMenuOpen ? 'block' : 'hidden md:flex'}`}
     >
       {/* Header */}
       <div className="p-4 border-b border-gray-200 dark:border-gray-600 flex items-center justify-between">
@@ -99,7 +99,7 @@ const Sidebar = ({
         <div className="flex">
           <button
             onClick={openProfileModal}
-            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-600"
+            className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600"
             aria-label="Profile"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -109,7 +109,7 @@ const Sidebar = ({
           </button>
           <button
             onClick={handleLogout}
-            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-600 ml-1"
+            className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 ml-1"
             aria-label="Logout"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -118,7 +118,7 @@ const Sidebar = ({
           </button>
           <button
             onClick={toggleTheme}
-            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-600 ml-1"
+            className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 ml-1"
             aria-label="Toggle theme"
           >
             {theme === 'dark' ? (
@@ -130,20 +130,20 @@ const Sidebar = ({
               >
                 <path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4.22 2.22a1 1 0 011.42 0l.7.7a1 1 0 11-1.42 1.42l-.7-.7a1 1 0 010-1.42zM17 9a1 1 0 100 2h1a1 1 0 100-2h-1zM4.22 4.22a1 1 0 00-1.42 1.42l.7.7a1 1 0 001.42-1.42l-.7-.7zM3 9a1 1 0 100 2H2a1 1 0 100-2h1zm1.22 6.78a1 1 0 011.42 0l.7.7a1 1 0 01-1.42 1.42l-.7-.7a1 1 0 010-1.42zM10 17a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zm6.78-1.22a1 1 0 00-1.42-1.42l-.7.7a1 1 0 001.42 1.42l.7-.7zM10 5a5 5 0 100 10 5 5 0 000-10z" />
               </svg>
-            ) : (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5 text-gray-600"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path d="M17.293 13.293a8 8 0 01-11.586-11.586 8 8 0 1011.586 11.586z" />
-              </svg>
-            )}
+                ) : (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5 text-gray-800"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                  >
+                    <path d="M21 12.79A9 9 0 1111.21 3a7 7 0 009.79 9.79z" />
+                  </svg>
+                )}
           </button>
           <button
             onClick={toggleMobileMenu}
-            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-600 ml-1 md:hidden"
+            className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 ml-1 md:hidden"
             aria-label="Close menu"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
