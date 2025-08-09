@@ -168,7 +168,7 @@ const ChatArea = ({ toggleMobileMenu, openUserProfileModal, openGroupInfoModal }
   }
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-gray-200 dark:bg-gray-700">
+<div className="flex-1 flex flex-col h-full bg-gray-200 dark:bg-gray-700">
           {/* Chat Header */}
           <div className="bg-gray-100 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600 px-4 py-3 flex items-center justify-between">
             <div className="flex items-center">
