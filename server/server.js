@@ -24,8 +24,6 @@ const app = express();
 // Allow requests from common deployment origins regardless of environment
 const allowedOrigins = [
   'http://localhost:3000',
-  'https://chatee.up.railway.app',
-  'https://livechat-production-d44b.up.railway.app',
   process.env.CLIENT_URL,
 ].filter(Boolean);
 
