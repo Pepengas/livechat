@@ -53,7 +53,7 @@ export function RegisterForm({
       setErrorMessage('Please fill in all fields');
       return;
     }
-    const emailRegex = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(emailValue)) {
       setErrorMessage('Please enter a valid email address');
       return;
@@ -110,8 +110,7 @@ export function RegisterForm({
         <input
           id="email"
           ref={emailInputRef}
-          type="text"
-          pattern="[a-zA-Z0-9._%+\\-]+@[a-zA-Z0-9.\\-]+\\.[a-zA-Z]{2,}$"
+          type="email"
           value={emailValue}
           onChange={(e) => setEmailValue(e.target.value)}
           onFocus={handleEmailFocus}

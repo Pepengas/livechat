@@ -21,12 +21,28 @@ const socketService = require('./services/socket.service');
 const app = express();
 
 // Middleware
-app.use(cors({
-  origin: process.env.NODE_ENV === 'production'
-    ? [process.env.CLIENT_URL || 'https://livechat-production-d44b.up.railway.app']
-    : 'http://localhost:3000',
-  credentials: true
-}));
+const allowedOrigins =
+  process.env.NODE_ENV === 'production'
+    ? [
+        process.env.CLIENT_URL,
+        'https://chatee.up.railway.app',
+        'https://livechat-production-d44b.up.railway.app',
+      ].filter(Boolean)
+    : ['http://localhost:3000'];
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 app.use(express.json());
 const path = require('path');
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -60,9 +76,7 @@ const server = http.createServer(app);
 // Create Socket.IO server
 const io = socketIo(server, {
   cors: {
-    origin: process.env.NODE_ENV === 'production' 
-      ? [process.env.CLIENT_URL || 'https://livechat-production-d44b.up.railway.app'] 
-      : ['http://localhost:3000'],
+    origin: allowedOrigins,
     methods: ['GET', 'POST'],
     credentials: true
   }
