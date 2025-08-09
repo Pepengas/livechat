@@ -99,7 +99,7 @@
 
 /* Message styles */
 .message-row {
-  @apply flex w-full;
+  @apply flex w-full items-end;
 }
 
 .message-row.incoming {
@@ -111,7 +111,7 @@
 }
 
 .bubble {
-  @apply relative break-words whitespace-pre-line shadow;
+  @apply relative inline-block break-words whitespace-pre-wrap shadow;
   max-width: 75%;
   padding: 8px 12px 14px 12px;
 }
