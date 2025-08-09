@@ -65,6 +65,16 @@ const MessageList = ({ messages, currentUser, selectedChat }) => {
 
   const formatTime = (dateStr) => format(new Date(dateStr), 'h:mm a');
 
+  const formatMessageContent = (text, wordsPerLine = 7) => {
+    if (!text) return '';
+    const words = text.split(/\s+/);
+    const lines = [];
+    for (let i = 0; i < words.length; i += wordsPerLine) {
+      lines.push(words.slice(i, i + wordsPerLine).join(' '));
+    }
+    return lines.join('\n');
+  };
+
   const openDeleteModal = (messageId) => setMessageToDelete(messageId);
 
   const handleDeleteMessage = async (messageId, scope) => {
@@ -224,7 +234,9 @@ const MessageList = ({ messages, currentUser, selectedChat }) => {
                         }`}
                       >
                         {message.content && (
-                          <div className="message-text">{message.content}</div>
+                          <div className="message-text" style={{ whiteSpace: 'pre-wrap' }}>
+                            {formatMessageContent(message.content)}
+                          </div>
                         )}
 
                         {message.attachments && message.attachments.length > 0 && (
