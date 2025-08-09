@@ -98,31 +98,44 @@
 
 /* Message styles */
 .bubble {
-  @apply relative break-words whitespace-pre-wrap shadow px-4 py-2 rounded-2xl;
+  position: relative;
+  display: inline-block;
   max-width: 85%;
+  width: auto;
+  min-width: 0;
+  padding: 10px 14px;
+  border-radius: 18px;
+  line-height: 1.25;
+  white-space: pre-wrap;
+  word-break: normal !important;
+  overflow-wrap: break-word;
 }
 
 .message-text {
-  white-space: pre-wrap;
-  word-break: normal;
-  overflow-wrap: break-word;
   display: inline;
+  white-space: inherit;
+  word-break: inherit !important;
+  overflow-wrap: inherit;
 }
 
 @media (min-width: 768px) {
   .bubble {
-    max-width: 70%;
+    max-width: 72%;
   }
 }
 
 .bubble--me {
-  background: var(--primary);
+  margin-left: auto;
   color: #fff;
+  background: #60a5fa;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
 }
 
 .bubble--them {
-  background: var(--surface);
-  color: var(--text);
+  margin-right: auto;
+  color: #0f172a;
+  background: #eaf1ff;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.04);
 }
 
 .bubble--tail::after {
@@ -136,35 +149,32 @@
 
 .bubble--me.bubble--tail::after {
   right: -8px;
-  border-left-color: var(--primary);
+  border-left-color: #60a5fa;
   border-top-width: 8px;
   border-bottom-width: 0;
 }
 
 .bubble--them.bubble--tail::after {
   left: -8px;
-  border-right-color: var(--surface);
+  border-right-color: #eaf1ff;
   border-top-width: 8px;
   border-bottom-width: 0;
 }
 
 .group-meta {
   font-size: 0.75rem;
-  color: var(--muted);
+  color: #94a3b8;
   margin-top: 4px;
 }
 
-/* Date pill */
-.date-pill {
-  @apply flex justify-center my-4 text-xs;
+.message-row {
+  display: block;
+  min-width: 0;
 }
 
-.date-pill span {
-  background: var(--surface);
-  color: var(--muted);
-  border: 1px solid var(--border);
-  padding: 2px 8px;
-  border-radius: 9999px;
+.bubble,
+.message-text {
+  word-break: keep-all !important;
 }
 
 /* Reactions and quotes placeholder classes */

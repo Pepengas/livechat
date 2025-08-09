@@ -174,8 +174,11 @@ const MessageList = ({ messages, currentUser, selectedChat }) => {
         {items.map((item, idx) => {
           if (item.type === 'date') {
             return (
-              <div key={`date-${idx}`} className="date-pill">
-                <span>{formatDate(item.date)}</span>
+              <div
+                key={`date-${idx}`}
+                className="mx-auto my-3 px-3 py-1 text-xs text-slate-500 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full w-fit"
+              >
+                {formatDate(item.date)}
               </div>
             );
           }
@@ -213,7 +216,7 @@ const MessageList = ({ messages, currentUser, selectedChat }) => {
                 {item.messages.map((message, i) => {
                   const isLast = i === item.messages.length - 1;
                   return (
-                    <div key={message._id} className="flex items-end group">
+                    <div key={message._id} className="message-row group">
                       <div
                         dir="auto"
                         className={`bubble ${isMe ? 'bubble--me' : 'bubble--them'} ${
@@ -234,7 +237,7 @@ const MessageList = ({ messages, currentUser, selectedChat }) => {
                       </div>
                       <button
                         onClick={() => openDeleteModal(message._id)}
-                        className="ml-1 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100"
+                        className="ml-1 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 align-bottom"
                         aria-label="Delete message"
                       >
                         <svg
@@ -256,11 +259,15 @@ const MessageList = ({ messages, currentUser, selectedChat }) => {
                   );
                 })}
 
-                <div className={`group-meta ${isMe ? 'text-right' : 'text-left'}`}>
+                <div
+                  className={`group-meta text-xs text-slate-400 mt-1 ${
+                    isMe ? 'text-right' : 'text-left'
+                  }`}
+                >
                   {formatTime(lastMsg.createdAt)}
                   {isMe && (
                     <span className="ml-1">
-                      {lastMsg.readBy.length > 0 ? '✓✓ Read' : '✓ Delivered'}
+                      • {lastMsg.readBy.length > 0 ? '✓✓ Read' : '✓ Delivered'}
                     </span>
                   )}
                 </div>
