@@ -22,10 +22,11 @@ axios.interceptors.request.use(
 axios.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      // Handle unauthorized access
+    if (error.response?.status === 401 && localStorage.getItem('token')) {
+      // Only act on unauthorized responses when a token is present
       console.log('Unauthorized access, redirecting to login');
-      // You can add additional logic here if needed
+      localStorage.removeItem('token');
+      window.location.href = '/login';
     }
     return Promise.reject(error);
   }
