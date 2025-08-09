@@ -41,7 +41,9 @@ export const AuthProvider = ({ children }) => {
     setError(null);
     try {
       const data = await loginUser(email, password);
-      setCurrentUser(data.user);
+      // API returns user fields directly rather than wrapping in a `user` object
+      // so store the entire response as the current user
+      setCurrentUser(data);
       setIsAuthenticated(true);
       return data;
     } catch (err) {
@@ -54,7 +56,8 @@ export const AuthProvider = ({ children }) => {
     setError(null);
     try {
       const data = await registerUser(userData);
-      setCurrentUser(data.user);
+      // Registration endpoint also returns the user fields directly
+      setCurrentUser(data);
       setIsAuthenticated(true);
       return data;
     } catch (err) {
