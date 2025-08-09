@@ -9,7 +9,6 @@ const messageSchema = new mongoose.Schema(
     },
     content: {
       type: String,
-      trim: true,
       default: ''
     },
     chat: {

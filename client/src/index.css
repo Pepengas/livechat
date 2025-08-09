@@ -105,17 +105,20 @@
   min-width: 0;
   padding: 10px 14px;
   border-radius: 18px;
-  line-height: 1.25;
-  white-space: pre-wrap;
-  word-break: normal !important;
-  overflow-wrap: break-word;
+  line-height: 1.35;
 }
 
-.message-text {
+.msg-text {
+  white-space: break-spaces;
+  word-break: normal;
+  overflow-wrap: break-word;
   display: inline;
-  white-space: inherit;
-  word-break: inherit !important;
-  overflow-wrap: inherit;
+}
+
+@supports not (white-space: break-spaces) {
+  .msg-text {
+    white-space: pre-wrap;
+  }
 }
 
 @media (min-width: 768px) {
@@ -172,10 +175,6 @@
   min-width: 0;
 }
 
-.bubble,
-.message-text {
-  word-break: keep-all !important;
-}
 
 /* Reactions and quotes placeholder classes */
 .reaction-row {

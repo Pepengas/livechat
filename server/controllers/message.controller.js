@@ -25,10 +25,13 @@ const sendMessage = async (req, res) => {
       return res.status(400).json({ message: 'Chat ID is required' });
     }
 
+    // Normalize newlines but preserve all other whitespace
+    const normalizedContent = content ? content.replace(/\r\n/g, '\n') : '';
+
     // Create a new message
     const newMessage = {
       sender: req.user._id,
-      content: content || '',
+      content: normalizedContent,
       chat: chatId,
       attachments,
       readBy: [req.user._id], // Sender has read the message

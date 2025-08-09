@@ -110,7 +110,7 @@ const MessageInput = ({ chatId, onTyping }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if ((!message.trim() && attachments.length === 0) || !chatId) return;
+    if ((message === '' && attachments.length === 0) || !chatId) return;
     
     try {
       // Stop typing indicator
@@ -124,7 +124,7 @@ const MessageInput = ({ chatId, onTyping }) => {
         uploaded = await uploadAttachments(files);
       }
 
-      await sendNewMessage(chatId, message.trim(), uploaded);
+      await sendNewMessage(chatId, message, uploaded);
       
       // Reset state
       setMessage('');
@@ -233,7 +233,7 @@ const MessageInput = ({ chatId, onTyping }) => {
         <button 
           type="submit" 
           className="p-2 bg-primary-600 text-white rounded-full hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
-          disabled={!message.trim() && attachments.length === 0}
+          disabled={message === '' && attachments.length === 0}
           aria-label="Send message"
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
