@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '../../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
@@ -21,18 +21,12 @@ export function RegisterForm({
   setIsPasswordFocused,
   setIsConfirmPasswordFocused,
 }) {
-  const emailInputRef = useRef(null);
   const [errorMessage, setErrorMessage] = useState('');
   const { register } = useAuth();
   const navigate = useNavigate();
 
   const handleEmailFocus = () => {
     setIsEmailFocused(true);
-    setTimeout(() => {
-      if (emailInputRef.current) {
-        emailInputRef.current.selectionStart = emailInputRef.current.value.length;
-      }
-    }, 0);
   };
 
   const togglePasswordVisibility = (e) => {
@@ -62,8 +56,8 @@ const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       setErrorMessage('Passwords do not match');
       return;
     }
-    if (passwordValue.length < 6) {
-      setErrorMessage('Password must be at least 6 characters');
+    if (passwordValue.length < 8) {
+      setErrorMessage('Password must be at least 8 characters');
       return;
     }
     try {
@@ -109,7 +103,6 @@ const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         </label>
         <input
           id="email"
-          ref={emailInputRef}
           type="email"
           value={emailValue}
           onChange={(e) => setEmailValue(e.target.value)}
