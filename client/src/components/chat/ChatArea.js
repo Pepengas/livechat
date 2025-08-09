@@ -147,7 +147,7 @@ const ChatArea = ({ toggleMobileMenu, openUserProfileModal, openGroupInfoModal }
 
   if (!selectedChat) {
     return (
-      <div className="flex-1 flex flex-col h-full bg-gray-200 dark:bg-gray-700">
+      <div className="chat-shell">
         <div className="flex flex-col items-center justify-center h-full bg-gray-200 dark:bg-gray-700 p-4">
           <svg xmlns="http://www.w3.org/2000/svg" className="h-24 w-24 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
@@ -168,7 +168,7 @@ const ChatArea = ({ toggleMobileMenu, openUserProfileModal, openGroupInfoModal }
   }
 
   return (
-<div className="flex-1 flex flex-col h-full bg-gray-200 dark:bg-gray-700">
+<div className="chat-shell">
           {/* Chat Header */}
           <div className="bg-gray-100 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600 px-4 py-3 flex items-center justify-between">
             <div className="flex items-center">
@@ -226,41 +226,41 @@ const ChatArea = ({ toggleMobileMenu, openUserProfileModal, openGroupInfoModal }
           </div>
           
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto overflow-x-hidden p-4">
-            {messageLoading ? (
-              <div className="flex justify-center items-center h-full">
-                <LoadingSpinner />
-              </div>
-            ) : messages.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full text-gray-500 dark:text-gray-400">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                </svg>
-                <p className="mt-4 text-lg">No messages yet</p>
-                <p className="text-sm">Send a message to start the conversation</p>
-              </div>
-            ) : (
-              <MessageList 
-                messages={messages} 
-                currentUser={currentUser} 
-                selectedChat={selectedChat} 
-              />
-            )}
-            <div ref={messagesEndRef} />
-          </div>
-          
-          {/* Typing Indicator */}
-          {getTypingText() && (
-            <div className="px-4 py-2">
-              <div className="typing-indicator text-gray-500 dark:text-gray-400 text-sm">
-                {getTypingText()}
-                <span></span>
-                <span></span>
-                <span></span>
-              </div>
+          <div className="chat-scroll">
+            <div className="chat-column">
+              {messageLoading ? (
+                <div className="flex justify-center items-center h-full">
+                  <LoadingSpinner />
+                </div>
+              ) : messages.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full text-gray-500 dark:text-gray-400">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                  </svg>
+                  <p className="mt-4 text-lg">No messages yet</p>
+                  <p className="text-sm">Send a message to start the conversation</p>
+                </div>
+              ) : (
+                <MessageList
+                  messages={messages}
+                  currentUser={currentUser}
+                  selectedChat={selectedChat}
+                />
+              )}
+
+              {getTypingText() && (
+                <div className="typing-indicator text-gray-500 dark:text-gray-400 text-sm">
+                  {getTypingText()}
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </div>
+              )}
+
+              <div ref={messagesEndRef} />
             </div>
-          )}
-          
+          </div>
+
           {/* Message Input */}
             <div className="border-t border-gray-200 dark:border-gray-600 p-4 bg-gray-100 dark:bg-gray-700">
               <MessageInput chatId={selectedChat._id} onTyping={handleTyping} />
