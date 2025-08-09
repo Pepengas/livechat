@@ -81,7 +81,7 @@ const Sidebar = ({
 
   return (
     <div
-      className={`w-full md:w-80 bg-white dark:bg-gray-700 border-r border-gray-200 dark:border-gray-600 flex flex-col h-full ${isMobileMenuOpen ? 'block' : 'hidden md:flex'}`}
+      className={`w-full md:w-80 bg-gray-50 dark:bg-gray-700 border-r border-gray-200 dark:border-gray-600 flex flex-col h-full ${isMobileMenuOpen ? 'block' : 'hidden md:flex'}`}
     >
       {/* Header */}
       <div className="p-4 border-b border-gray-200 dark:border-gray-600 flex items-center justify-between">
@@ -133,7 +133,7 @@ const Sidebar = ({
             ) : (
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5 text-gray-600"
+                className="h-5 w-5 text-gray-800"
                 viewBox="0 0 20 20"
                 fill="currentColor"
               >
