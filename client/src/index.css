@@ -3,26 +3,24 @@
 @tailwind utilities;
 
 :root {
-  /* Modern gradient background and refined bubble palette */
-  --chat-bg: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
-  --bubble-incoming-bg: #ffffff;
-  --bubble-incoming-color: #000;
-  --bubble-outgoing-bg: linear-gradient(135deg, #0ea5e9 0%, #3b82f6 100%);
-  --bubble-outgoing-color: #fff;
-  --timestamp-color: rgba(0,0,0,0.45);
-  --date-pill-bg: #e0e0e0;
-  --date-pill-color: #555;
+  /* Design tokens */
+  --bg: #f5f7fb;
+  --surface: #ffffff;
+  --text: #0f172a;
+  --muted: #64748b;
+  --border: #e5e7eb;
+  --primary: #1a73e8;
+  --primary-weak: #e8f0fe;
 }
 
 .dark {
-  --chat-bg: linear-gradient(135deg, #1f2937 0%, #111827 100%);
-  --bubble-incoming-bg: #2A2F32;
-  --bubble-incoming-color: #e0e0e0;
-  --bubble-outgoing-bg: linear-gradient(135deg, #0ea5e9 0%, #3b82f6 100%);
-  --bubble-outgoing-color: #fff;
-  --timestamp-color: rgba(255,255,255,0.55);
-  --date-pill-bg: #3a3a3a;
-  --date-pill-color: #ddd;
+  --bg: #0b0f14;
+  --surface: #111827;
+  --text: #e5e7eb;
+  --muted: #94a3b8;
+  --border: #1f2937;
+  --primary: #60a5fa;
+  --primary-weak: #0b1220;
 }
 
 @layer base {
@@ -31,8 +29,8 @@
   }
   body {
     @apply h-full antialiased font-sans;
-    background: var(--chat-bg);
-    color: var(--bubble-incoming-color);
+    background: var(--bg);
+    color: var(--text);
   }
   #root {
     @apply h-full;
@@ -85,7 +83,7 @@
 /* Chat layout */
 .chat-shell {
   @apply flex flex-col h-full flex-1 transition-all duration-300;
-  background: var(--chat-bg);
+  background: var(--bg);
 }
 
 .chat-scroll {
@@ -94,60 +92,81 @@
 
 .chat-column {
   @apply w-full mx-auto;
-  max-width: 720px;
+  max-width: 1000px;
   padding: 16px;
 }
 
 /* Message styles */
-.message-row {
-  @apply flex w-full items-end;
-}
-
-.message-row.incoming {
-  @apply justify-start;
-}
-
-.message-row.outgoing {
-  @apply justify-end;
-}
-
 .bubble {
-  @apply relative inline-block break-words whitespace-pre-wrap shadow;
-  max-width: 75%;
-  padding: 8px 12px 14px 12px;
+  @apply relative break-words whitespace-pre-wrap shadow px-4 py-2 rounded-2xl;
+  max-width: 85%;
 }
 
-.bubble.incoming {
-  background: var(--bubble-incoming-bg);
-  color: var(--bubble-incoming-color);
-  border-radius: 18px 18px 18px 6px;
+@media (min-width: 768px) {
+  .bubble {
+    max-width: 70%;
+  }
 }
 
-.bubble.outgoing {
-  background: var(--bubble-outgoing-bg);
-  color: var(--bubble-outgoing-color);
-  border-radius: 18px 18px 6px 18px;
+.bubble--me {
+  background: var(--primary);
+  color: #fff;
 }
 
-.bubble .meta {
+.bubble--them {
+  background: var(--surface);
+  color: var(--text);
+}
+
+.bubble--tail::after {
+  content: '';
   position: absolute;
-  right: 8px;
-  bottom: 4px;
-  font-size: 10px;
-  opacity: 0.7;
-  color: var(--timestamp-color);
+  bottom: 0;
+  width: 0;
+  height: 0;
+  border: 8px solid transparent;
 }
 
-/* Date separator */
-.date-separator {
-  @apply flex justify-center my-3 text-xs;
+.bubble--me.bubble--tail::after {
+  right: -8px;
+  border-left-color: var(--primary);
+  border-top-width: 8px;
+  border-bottom-width: 0;
 }
 
-.date-separator span {
-  background: var(--date-pill-bg);
-  color: var(--date-pill-color);
+.bubble--them.bubble--tail::after {
+  left: -8px;
+  border-right-color: var(--surface);
+  border-top-width: 8px;
+  border-bottom-width: 0;
+}
+
+.group-meta {
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+/* Date pill */
+.date-pill {
+  @apply flex justify-center my-4 text-xs;
+}
+
+.date-pill span {
+  background: var(--surface);
+  color: var(--muted);
+  border: 1px solid var(--border);
   padding: 2px 8px;
   border-radius: 9999px;
+}
+
+/* Reactions and quotes placeholder classes */
+.reaction-row {
+  @apply mt-1 flex gap-1;
+}
+
+.quote {
+  @apply border-l-4 pl-2 italic text-sm text-gray-600 dark:text-gray-300 mb-1;
 }
 
 /* Typing indicator animation */

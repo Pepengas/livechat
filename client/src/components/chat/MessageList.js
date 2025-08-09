@@ -1,47 +1,73 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { format } from 'date-fns';
 import { useChat } from '../../hooks/useChat';
 import ImageModal from '../modals/ImageModal';
 import DeleteMessageModal from '../modals/DeleteMessageModal';
+
+const FIVE_MIN = 5 * 60 * 1000;
 
 const MessageList = ({ messages, currentUser, selectedChat }) => {
   const { deleteMessageById } = useChat();
   const [selectedImage, setSelectedImage] = useState(null);
   const [messageToDelete, setMessageToDelete] = useState(null);
 
-  // Group messages by date
-  const groupedMessages = messages.reduce((groups, message) => {
-    const date = new Date(message.createdAt).toDateString();
-    if (!groups[date]) {
-      groups[date] = [];
-    }
-    groups[date].push(message);
-    return groups;
-  }, {});
+  // Build list of date pills and message groups
+  const items = useMemo(() => {
+    const result = [];
+    let lastDate = '';
+    let currentGroup = null;
 
-  // Format the date for display
+    messages.forEach((msg) => {
+      const dateStr = new Date(msg.createdAt).toDateString();
+
+      if (dateStr !== lastDate) {
+        result.push({ type: 'date', date: dateStr });
+        lastDate = dateStr;
+        currentGroup = null;
+      }
+
+      const isMe = msg.sender._id === currentUser._id;
+      const msgTime = new Date(msg.createdAt).getTime();
+
+      if (
+        !currentGroup ||
+        currentGroup.isMe !== isMe ||
+        currentGroup.sender._id !== msg.sender._id ||
+        msgTime - currentGroup.lastTime > FIVE_MIN
+      ) {
+        currentGroup = {
+          type: 'group',
+          sender: msg.sender,
+          isMe,
+          messages: [msg],
+          lastTime: msgTime,
+        };
+        result.push(currentGroup);
+      } else {
+        currentGroup.messages.push(msg);
+        currentGroup.lastTime = msgTime;
+      }
+    });
+
+    return result;
+  }, [messages, currentUser]);
+
   const formatDate = (dateString) => {
     const messageDate = new Date(dateString);
     const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterday = new Date();
+    yesterday.setDate(today.getDate() - 1);
 
-    if (messageDate.toDateString() === today.toDateString()) {
-      return 'Today';
-    } else if (messageDate.toDateString() === yesterday.toDateString()) {
-      return 'Yesterday';
-    } else {
-      return format(messageDate, 'MMMM d, yyyy');
-    }
+    if (messageDate.toDateString() === today.toDateString()) return 'Today';
+    if (messageDate.toDateString() === yesterday.toDateString()) return 'Yesterday';
+    return format(messageDate, 'MMMM d, yyyy');
   };
 
-  // Format the time for display
-  const formatTime = (dateString) => {
-    return format(new Date(dateString), 'h:mm a');
-  };
+  const formatTime = (dateStr) => format(new Date(dateStr), 'h:mm a');
 
-  // Handle message deletion
-const handleDeleteMessage = async (messageId, scope) => {
+  const openDeleteModal = (messageId) => setMessageToDelete(messageId);
+
+  const handleDeleteMessage = async (messageId, scope) => {
     try {
       await deleteMessageById(messageId, selectedChat._id, scope);
     } catch (err) {
@@ -49,11 +75,6 @@ const handleDeleteMessage = async (messageId, scope) => {
     }
   };
 
-  const openDeleteModal = (messageId) => {
-    setMessageToDelete(messageId);
-  };
-
-  // Render attachment
   const renderAttachment = (attachment) => {
     const type = attachment.type.split('/')[0];
 
@@ -68,7 +89,7 @@ const handleDeleteMessage = async (messageId, scope) => {
               onClick={() => setSelectedImage(attachment.url)}
             />
             {attachment.name && (
-              <div className="text-xs mt-1 text-gray-500">
+              <div className="text-xs mt-1" style={{ color: 'var(--muted)' }}>
                 {attachment.name} {attachment.size && `(${formatFileSize(attachment.size)})`}
               </div>
             )}
@@ -77,15 +98,12 @@ const handleDeleteMessage = async (messageId, scope) => {
       case 'video':
         return (
           <div className="mt-2">
-            <video
-              controls
-              className="max-w-full rounded-lg max-h-60"
-            >
+            <video controls className="max-w-full rounded-lg max-h-60">
               <source src={attachment.url} type={attachment.type} />
               Your browser does not support the video tag.
             </video>
             {attachment.name && (
-              <div className="text-xs mt-1 text-gray-500">
+              <div className="text-xs mt-1" style={{ color: 'var(--muted)' }}>
                 {attachment.name} {attachment.size && `(${formatFileSize(attachment.size)})`}
               </div>
             )}
@@ -99,7 +117,7 @@ const handleDeleteMessage = async (messageId, scope) => {
               Your browser does not support the audio tag.
             </audio>
             {attachment.name && (
-              <div className="text-xs mt-1 text-gray-500">
+              <div className="text-xs mt-1" style={{ color: 'var(--muted)' }}>
                 {attachment.name} {attachment.size && `(${formatFileSize(attachment.size)})`}
               </div>
             )}
@@ -108,20 +126,31 @@ const handleDeleteMessage = async (messageId, scope) => {
       default:
         return (
           <div className="mt-2 p-3 bg-gray-100 rounded-lg flex items-center hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6 text-gray-500"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
             </svg>
             <div className="ml-2">
-              <a 
-                href={attachment.url} 
-                target="_blank" 
+              <a
+                href={attachment.url}
+                target="_blank"
                 rel="noopener noreferrer"
                 className="text-primary-600 hover:text-primary-800 font-medium"
               >
                 {attachment.name || 'File'}
               </a>
               {attachment.size && (
-                <div className="text-xs text-gray-500">
+                <div className="text-xs" style={{ color: 'var(--muted)' }}>
                   {formatFileSize(attachment.size)}
                 </div>
               )}
@@ -131,7 +160,6 @@ const handleDeleteMessage = async (messageId, scope) => {
     }
   };
 
-  // Format file size
   const formatFileSize = (bytes) => {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
@@ -143,97 +171,103 @@ const handleDeleteMessage = async (messageId, scope) => {
   return (
     <>
       <div className="space-y-6">
-        {Object.keys(groupedMessages).map((date) => (
-          <div key={date}>
-            <div className="date-separator">
-              <span>{formatDate(date)}</span>
-            </div>
+        {items.map((item, idx) => {
+          if (item.type === 'date') {
+            return (
+              <div key={`date-${idx}`} className="date-pill">
+                <span>{formatDate(item.date)}</span>
+              </div>
+            );
+          }
 
-            {groupedMessages[date].map((message, index, arr) => {
-              const isSentByMe = message.sender._id === currentUser._id;
-              const previous = arr[index - 1];
-              const isSameSender = previous && previous.sender._id === message.sender._id;
-              const isFirstOfSender = !isSameSender;
-              const gapClass = index === 0 ? '' : isSameSender ? 'mt-1' : 'mt-3';
+          const lastMsg = item.messages[item.messages.length - 1];
+          const isMe = item.isMe;
+          return (
+            <div
+              key={`group-${idx}`}
+              className={`flex ${isMe ? 'justify-end' : 'justify-start'} items-end`}
+            >
+              {!isMe && (
+                <img
+                  src={
+                    item.sender.avatar ||
+                    `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                      item.sender.name
+                    )}&background=random`
+                  }
+                  alt={item.sender.name}
+                  className="h-8 w-8 rounded-full mr-2 self-end"
+                />
+              )}
 
-              return (
-                <div key={message._id} className={`message-row ${isSentByMe ? 'outgoing' : 'incoming'} ${gapClass}`}>
-                  {!isSentByMe && !selectedChat.isGroupChat && (
-                    isFirstOfSender ? (
-                      <img
-                        src={message.sender.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(message.sender.name)}&background=random`}
-                        alt={message.sender.name}
-                        className="h-8 w-8 rounded-full mr-2 self-end"
-                      />
-                    ) : (
-                      <div className="w-8 mr-2" />
-                    )
-                  )}
+              <div className={`flex flex-col ${isMe ? 'items-end' : 'items-start'} space-y-1`}>
+                {selectedChat.isGroupChat && !isMe && (
+                  <span
+                    className="text-xs font-medium"
+                    style={{ color: 'var(--muted)' }}
+                  >
+                    {item.sender.name}
+                  </span>
+                )}
 
-                  <div>
-                    {selectedChat.isGroupChat && !isSentByMe && isFirstOfSender && (
-                      <div className="flex items-center mb-1">
-                        <img
-                          src={message.sender.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(message.sender.name)}&background=random`}
-                          alt={message.sender.name}
-                          className="h-6 w-6 rounded-full mr-2"
-                        />
-                        <span className="text-xs font-medium text-gray-700">{message.sender.name}</span>
-                      </div>
-                    )}
+                {item.messages.map((message, i) => {
+                  const isLast = i === item.messages.length - 1;
+                  return (
+                    <div key={message._id} className="flex items-end group">
+                      <div
+                        dir="auto"
+                        className={`bubble ${isMe ? 'bubble--me' : 'bubble--them'} ${
+                          isLast ? 'bubble--tail' : ''
+                        }`}
+                      >
+                        {message.content && <div>{message.content}</div>}
 
-                    <div dir="auto" className={`bubble ${isSentByMe ? 'outgoing' : 'incoming'}`}>
-                      {message.content && (
-                        <div>
-                          {message.content}
-                        </div>
-                      )}
-
-                      {message.attachments && message.attachments.length > 0 && (
-                        <div className="space-y-2">
-                          {message.attachments.map((attachment, index) => (
-                            <div key={index}>{renderAttachment(attachment)}</div>
-                          ))}
-                        </div>
-                      )}
-
-                      <div className="meta">
-                        {formatTime(message.createdAt)}
-                        {isSentByMe && (
-                          <span className="ml-1">
-                            {message.readBy.length > 0 ? 'Read' : 'Delivered'}
-                          </span>
+                        {message.attachments && message.attachments.length > 0 && (
+                          <div className="space-y-2 mt-2">
+                            {message.attachments.map((att, index) => (
+                              <div key={index}>{renderAttachment(att)}</div>
+                            ))}
+                          </div>
                         )}
                       </div>
+                      <button
+                        onClick={() => openDeleteModal(message._id)}
+                        className="ml-1 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100"
+                        aria-label="Delete message"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-3 w-3"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                          />
+                        </svg>
+                      </button>
                     </div>
-                  </div>
+                  );
+                })}
 
-                  <button
-                    onClick={() => openDeleteModal(message._id)}
-                    className="ml-2 text-gray-400 hover:text-red-500"
-                    aria-label="Delete message"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-3 w-3"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                      />
-                    </svg>
-                  </button>
+                <div className={`group-meta ${isMe ? 'text-right' : 'text-left'}`}>
+                  {formatTime(lastMsg.createdAt)}
+                  {isMe && (
+                    <span className="ml-1">
+                      {lastMsg.readBy.length > 0 ? '✓✓ Read' : '✓ Delivered'}
+                    </span>
+                  )}
                 </div>
-              );
-            })}
-          </div>
-        ))}
+              </div>
+            </div>
+          );
+        })}
       </div>
+
       <ImageModal
         isOpen={!!selectedImage}
         imageUrl={selectedImage}
@@ -249,4 +283,5 @@ const handleDeleteMessage = async (messageId, scope) => {
   );
 };
 
-export default MessageList
+export default MessageList;
+
