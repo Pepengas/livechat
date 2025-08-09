@@ -147,18 +147,18 @@ const ChatArea = ({ toggleMobileMenu, openUserProfileModal, openGroupInfoModal }
 
   if (!selectedChat) {
     return (
-      <div className="chat-shell">
-        <div className="flex flex-col items-center justify-center h-full bg-gray-200 dark:bg-gray-700 p-4">
+      <div key="placeholder" className="chat-shell">
+        <div className="flex flex-col items-center justify-center h-full bg-gray-200 dark:bg-gray-700 p-4 text-center">
           <svg xmlns="http://www.w3.org/2000/svg" className="h-24 w-24 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
           </svg>
           <h2 className="mt-4 text-xl font-semibold text-gray-700 dark:text-gray-100">Welcome to LiveChat</h2>
-          <p className="mt-2 text-gray-500 dark:text-gray-400 text-center max-w-md">
+          <p className="mt-2 text-gray-500 dark:text-gray-400 max-w-md">
             Select a chat from the sidebar or search for users to start a new conversation.
           </p>
           <button
             onClick={toggleMobileMenu}
-            className="mt-6 md:hidden inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+            className="mt-6 md:hidden inline-flex items-center px-4 py-2 text-sm font-semibold rounded-lg text-white bg-gradient-to-r from-primary-500 to-primary-700 shadow-md hover:shadow-lg transition"
           >
             Open Chats
           </button>
@@ -168,22 +168,22 @@ const ChatArea = ({ toggleMobileMenu, openUserProfileModal, openGroupInfoModal }
   }
 
   return (
-<div className="chat-shell">
+    <div key={selectedChat._id} className="chat-shell">
           {/* Chat Header */}
-          <div className="bg-gray-100 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600 px-4 py-3 flex items-center justify-between">
+          <div className="bg-gray-100 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600 px-4 py-3 flex items-center justify-between shadow-sm">
             <div className="flex items-center">
               <button
                 onClick={toggleMobileMenu}
                 className="md:hidden p-2 mr-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
-                aria-label="Menu"
+                aria-label="Back"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
               </button>
               <div className="flex items-center cursor-pointer" onClick={handleProfileClick}>
-                <img 
-                  src={getChatAvatar()} 
+                <img
+                  src={getChatAvatar()}
                   alt={getChatName()}
                   className="h-10 w-10 rounded-full object-cover"
                 />

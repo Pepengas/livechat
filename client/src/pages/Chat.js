@@ -67,9 +67,16 @@ const Chat = () => {
   };
 
   return (
-    <div className="h-full flex">
+    <div className="h-full flex relative">
+      {isMobileMenuOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 z-20 md:hidden transition-opacity"
+          onClick={toggleMobileMenu}
+        ></div>
+      )}
+
       {/* Sidebar */}
-      <Sidebar 
+      <Sidebar
         isMobileMenuOpen={isMobileMenuOpen}
         toggleMobileMenu={toggleMobileMenu}
         openProfileModal={openProfileModal}
@@ -78,7 +85,7 @@ const Chat = () => {
       />
 
       {/* Chat Area */}
-      <ChatArea 
+      <ChatArea
         toggleMobileMenu={toggleMobileMenu}
         openUserProfileModal={openUserProfileModal}
         openGroupInfoModal={openGroupInfoModal}

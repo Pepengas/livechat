@@ -81,7 +81,7 @@ const Sidebar = ({
 
   return (
     <div
-      className={`w-full md:w-80 bg-gray-200 dark:bg-gray-700 border-r border-gray-200 dark:border-gray-600 flex flex-col h-full ${isMobileMenuOpen ? 'block' : 'hidden md:flex'}`}
+      className={`fixed md:static inset-y-0 left-0 z-30 transform ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 transition-transform duration-300 w-64 md:w-80 bg-gradient-to-b from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 border-r border-gray-200 dark:border-gray-600 flex flex-col h-full shadow-lg`}
     >
       {/* Header */}
       <div className="p-4 border-b border-gray-200 dark:border-gray-600 flex items-center justify-between">
@@ -198,9 +198,9 @@ const Sidebar = ({
       
       {/* Create Group Button */}
       <div className="px-4 py-2">
-        <button 
+        <button
           onClick={openCreateGroupModal}
-          className="w-full flex items-center justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+          className="w-full flex items-center justify-center py-3 px-4 text-sm font-semibold rounded-lg text-white bg-gradient-to-r from-primary-500 to-primary-700 shadow-md hover:shadow-lg transition"
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />

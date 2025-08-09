@@ -3,10 +3,11 @@
 @tailwind utilities;
 
 :root {
-  --chat-bg: #f5f5f5;
-  --bubble-incoming-bg: #f1f1f1;
+  /* Modern gradient background and refined bubble palette */
+  --chat-bg: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+  --bubble-incoming-bg: #ffffff;
   --bubble-incoming-color: #000;
-  --bubble-outgoing-bg: #4fa3f7;
+  --bubble-outgoing-bg: linear-gradient(135deg, #0ea5e9 0%, #3b82f6 100%);
   --bubble-outgoing-color: #fff;
   --timestamp-color: rgba(0,0,0,0.45);
   --date-pill-bg: #e0e0e0;
@@ -14,10 +15,10 @@
 }
 
 .dark {
-  --chat-bg: #1f1f1f;
+  --chat-bg: linear-gradient(135deg, #1f2937 0%, #111827 100%);
   --bubble-incoming-bg: #2A2F32;
   --bubble-incoming-color: #e0e0e0;
-  --bubble-outgoing-bg: #4fa3f7;
+  --bubble-outgoing-bg: linear-gradient(135deg, #0ea5e9 0%, #3b82f6 100%);
   --bubble-outgoing-color: #fff;
   --timestamp-color: rgba(255,255,255,0.55);
   --date-pill-bg: #3a3a3a;
@@ -29,7 +30,7 @@
     @apply h-full;
   }
   body {
-    @apply h-full antialiased;
+    @apply h-full antialiased font-sans;
     background: var(--chat-bg);
     color: var(--bubble-incoming-color);
   }
@@ -83,7 +84,7 @@
 
 /* Chat layout */
 .chat-shell {
-  @apply flex flex-col h-full;
+  @apply flex flex-col h-full flex-1 transition-all duration-300;
   background: var(--chat-bg);
 }
 

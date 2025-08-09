@@ -79,7 +79,7 @@ const ChatList = ({ chats, openUserProfileModal }) => {
         return (
           <div
             key={chat._id}
-            className={`p-4 cursor-pointer bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 ${isSelected ? 'bg-gray-200 dark:bg-gray-600' : ''}`}
+            className={`p-4 cursor-pointer rounded-lg transition-colors duration-200 bg-gray-100 dark:bg-gray-700 hover:shadow-md hover:bg-gray-200 dark:hover:bg-gray-600 ${isSelected ? 'bg-gray-200 dark:bg-gray-600 shadow' : ''}`}
             onClick={() => setSelectedChat(chat)}
           >
             <div className="flex items-center">
