@@ -24,17 +24,25 @@ const app = express();
 const allowedOrigins =
   process.env.NODE_ENV === 'production'
     ? [
-        process.env.CLIENT_URL || 'https://chatee.up.railway.app',
+        process.env.CLIENT_URL,
+        'https://chatee.up.railway.app',
         'https://livechat-production-d44b.up.railway.app',
-      ]
+      ].filter(Boolean)
     : ['http://localhost:3000'];
 
-app.use(
-  cors({
-    origin: allowedOrigins,
-    credentials: true,
-  })
-);
+const corsOptions = {
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 app.use(express.json());
 const path = require('path');
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
