@@ -65,15 +65,7 @@ const MessageList = ({ messages, currentUser, selectedChat }) => {
 
   const formatTime = (dateStr) => format(new Date(dateStr), 'h:mm a');
 
-  const formatMessageContent = (text, wordsPerLine = 7) => {
-    if (!text) return '';
-    const words = text.split(/\s+/);
-    const lines = [];
-    for (let i = 0; i < words.length; i += wordsPerLine) {
-      lines.push(words.slice(i, i + wordsPerLine).join(' '));
-    }
-    return lines.join('\n');
-  };
+  // Messages are rendered exactly as typed; wrapping handled via CSS
 
   const openDeleteModal = (messageId) => setMessageToDelete(messageId);
 
@@ -234,9 +226,9 @@ const MessageList = ({ messages, currentUser, selectedChat }) => {
                         }`}
                       >
                         {message.content && (
-                          <div className="message-text" style={{ whiteSpace: 'pre-wrap' }}>
-                            {formatMessageContent(message.content)}
-                          </div>
+                          <span className="msg-text" aria-label="message body">
+                            {message.content}
+                          </span>
                         )}
 
                         {message.attachments && message.attachments.length > 0 && (
