@@ -21,9 +21,20 @@ export function LoginForm({
 
   const handleEmailFocus = () => {
     setIsEmailFocused(true);
+    // Some input types (like "email") don't allow direct manipulation of
+    // `selectionStart`.  Attempting to set it throws an InvalidStateError in
+    // certain browsers.  To avoid runtime errors we try to move the cursor
+    // inside a try/catch block and verify that the method exists before
+    // calling it.
     setTimeout(() => {
-      if (emailInputRef.current) {
-        emailInputRef.current.selectionStart = emailInputRef.current.value.length;
+      try {
+        const input = emailInputRef.current;
+        if (input && typeof input.setSelectionRange === 'function') {
+          const len = input.value.length;
+          input.setSelectionRange(len, len);
+        }
+      } catch (err) {
+        // Ignore unsupported input types
       }
     }, 0);
   };
