@@ -21,14 +21,11 @@ const socketService = require('./services/socket.service');
 const app = express();
 
 // Middleware
-const allowedOrigins =
-  process.env.NODE_ENV === 'production'
-    ? [
-        process.env.CLIENT_URL,
-        'https://chatee.up.railway.app',
-        'https://livechat-production-d44b.up.railway.app',
-      ].filter(Boolean)
-    : ['http://localhost:3000'];
+// Allow requests from common deployment origins regardless of environment
+const allowedOrigins = [
+  'http://localhost:3000',
+  process.env.CLIENT_URL,
+].filter(Boolean);
 
 const corsOptions = {
   origin: (origin, callback) => {
