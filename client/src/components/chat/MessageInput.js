@@ -175,7 +175,7 @@ const MessageInput = ({ chatId, onTyping }) => {
   };
 
   return (
-    <div className="p-4 border-t border-gray-200 dark:border-gray-600">
+    <div className="py-3">
       {/* Attachment previews */}
       {attachments.length > 0 && (
         <div className="flex flex-wrap gap-2 mb-3">

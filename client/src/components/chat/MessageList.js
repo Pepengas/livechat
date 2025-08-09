@@ -153,20 +153,25 @@ const handleDeleteMessage = async (messageId, scope) => {
               const isSentByMe = message.sender._id === currentUser._id;
               const previous = arr[index - 1];
               const isSameSender = previous && previous.sender._id === message.sender._id;
+              const isFirstOfSender = !isSameSender;
               const gapClass = index === 0 ? '' : isSameSender ? 'mt-1' : 'mt-3';
 
               return (
                 <div key={message._id} className={`message-row ${isSentByMe ? 'outgoing' : 'incoming'} ${gapClass}`}>
                   {!isSentByMe && !selectedChat.isGroupChat && (
-                    <img
-                      src={message.sender.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(message.sender.name)}&background=random`}
-                      alt={message.sender.name}
-                      className="h-8 w-8 rounded-full mr-2 mt-1"
-                    />
+                    isFirstOfSender ? (
+                      <img
+                        src={message.sender.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(message.sender.name)}&background=random`}
+                        alt={message.sender.name}
+                        className="h-8 w-8 rounded-full mr-2 self-end"
+                      />
+                    ) : (
+                      <div className="w-8 mr-2" />
+                    )
                   )}
 
                   <div>
-                    {selectedChat.isGroupChat && !isSentByMe && (
+                    {selectedChat.isGroupChat && !isSentByMe && isFirstOfSender && (
                       <div className="flex items-center mb-1">
                         <img
                           src={message.sender.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(message.sender.name)}&background=random`}
@@ -179,7 +184,7 @@ const handleDeleteMessage = async (messageId, scope) => {
 
                     <div dir="auto" className={`bubble ${isSentByMe ? 'outgoing' : 'incoming'}`}>
                       {message.content && (
-                        <div className="whitespace-pre-line break-words">
+                        <div>
                           {message.content}
                         </div>
                       )}

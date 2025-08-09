@@ -262,9 +262,11 @@ const ChatArea = ({ toggleMobileMenu, openUserProfileModal, openGroupInfoModal }
           </div>
 
           {/* Message Input */}
-            <div className="border-t border-gray-200 dark:border-gray-600 p-4 bg-gray-100 dark:bg-gray-700">
+          <div className="border-t border-gray-200 dark:border-gray-600 bg-gray-100 dark:bg-gray-700">
+            <div className="chat-column">
               <MessageInput chatId={selectedChat._id} onTyping={handleTyping} />
             </div>
+          </div>
       </div>
     );
   };
