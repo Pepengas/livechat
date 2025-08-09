@@ -53,7 +53,7 @@ export function RegisterForm({
       setErrorMessage('Please fill in all fields');
       return;
     }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(emailValue)) {
       setErrorMessage('Please enter a valid email address');
       return;

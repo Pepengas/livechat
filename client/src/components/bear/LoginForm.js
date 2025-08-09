@@ -72,7 +72,7 @@ export function LoginForm({
         </label>
         <input
           id="email"
-            ref={emailInputRef}
+ ref={emailInputRef}
             type="email"
           value={emailValue}
           onChange={(e) => setEmailValue(e.target.value)}
