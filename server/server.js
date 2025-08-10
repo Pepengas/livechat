@@ -82,22 +82,37 @@ const io = socketIo(server, {
 // Initialize socket service
 socketService(io);
 
-// Connect to MongoDB
-mongoose
-  .connect(process.env.MONGODB_URI)
-  .then(() => {
+// Helper to establish a MongoDB connection. When a connection string isn't
+// available or MongoDB is unreachable, fall back to an in-memory instance so
+// that development and tests can still run.
+const connectDB = async () => {
+  try {
+    if (!process.env.MONGODB_URI) {
+      throw new Error('MONGODB_URI not defined');
+    }
+    await mongoose.connect(process.env.MONGODB_URI);
     console.log('Connected to MongoDB');
-  })
-  .catch((error) => {
+  } catch (error) {
     console.error('MongoDB connection error:', error);
-    console.log('Continuing without MongoDB for development...');
-  });
+    console.log('Starting in-memory MongoDB instance...');
+    const { MongoMemoryServer } = require('mongodb-memory-server');
+    const mongoServer = await MongoMemoryServer.create();
+    const uri = mongoServer.getUri();
+    await mongoose.connect(uri);
+    console.log('Connected to in-memory MongoDB');
+  }
+};
 
-// Start server regardless of MongoDB connection
-const PORT = process.env.PORT || 8080;
-server.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server running on port ${PORT}`);
-});
+// Start server after attempting database connection
+const startServer = async () => {
+  await connectDB();
+  const PORT = process.env.PORT || 8080;
+  server.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+};
+
+startServer();
 
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err) => {
