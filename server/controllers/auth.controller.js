@@ -66,6 +66,7 @@ const register = async (req, res) => {
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
+    const normalizedEmail = email.trim().toLowerCase();
 
     // Ensure required fields are present and are strings before attempting to
     // use them.  Calling `trim()` on a non-string or missing value would throw
