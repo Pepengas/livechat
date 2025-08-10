@@ -67,10 +67,15 @@ const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Ensure required fields are present before attempting to use them. When
-    // `email` is undefined, calling `trim()` throws an error which previously
-    // resulted in a 500 response.  Return a clear 400 message instead.
-    if (!email || !password) {
+    // Ensure required fields are present and are strings before attempting to
+    // use them.  Calling `trim()` on a non-string or missing value would throw
+    // and result in a 500 response.  Return a clear 400 message instead.
+    if (
+      typeof email !== 'string' ||
+      typeof password !== 'string' ||
+      !email.trim() ||
+      !password.trim()
+    ) {
       return res.status(400).json({ message: 'Email and password are required' });
     }
 
