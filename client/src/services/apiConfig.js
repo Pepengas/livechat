@@ -1,7 +1,15 @@
 import axios from 'axios';
 
-// Use environment variable or default to localhost in development
-export const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+// Use the API URL from environment when provided. Otherwise, default to the
+// same origin as the current page so the client works in production
+// deployments where the backend serves the frontend. Fall back to localhost
+// for tests or non-browser environments.
+const defaultApiUrl =
+  typeof window !== 'undefined'
+    ? `${window.location.origin}/api`
+    : 'http://localhost:8080/api';
+
+export const API_URL = process.env.REACT_APP_API_URL || defaultApiUrl;
 
 // Configure axios with credentials
 axios.defaults.withCredentials = true;
