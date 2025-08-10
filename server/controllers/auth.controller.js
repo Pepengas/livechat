@@ -19,7 +19,25 @@ const generateToken = (id) => {
 const register = async (req, res) => {
   try {
     const { name, email, password } = req.body;
+
+    // Ensure required fields are present and strings before using them. Calling
+    // `trim()` on missing or non-string values would throw and result in a 500
+    // response. Provide a clear 400 message instead.
+    if (
+      typeof name !== 'string' ||
+      typeof email !== 'string' ||
+      typeof password !== 'string' ||
+      !name.trim() ||
+      !email.trim() ||
+      !password.trim()
+    ) {
+      return res
+        .status(400)
+        .json({ message: 'Name, email and password are required' });
+    }
+
     const normalizedEmail = email.trim().toLowerCase();
+    const normalizedName = name.trim();
 
     // Check if user already exists
     const userExists = await User.findOne({ email: normalizedEmail });
@@ -30,7 +48,7 @@ const register = async (req, res) => {
 
     // Create new user
     const newUser = await User.create({
-      name,
+      name: normalizedName,
       email: normalizedEmail,
       password,
     });
