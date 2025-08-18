@@ -1,0 +1,23 @@
+# .coderabbit.yml
+review:
+  style: strict
+  max_comments: 40
+  require_tests: true
+
+rules:
+  - name: security-checks
+    description: Warn about common security issues (SQL injection, XSS, unsafe eval)
+    severity: error
+  - name: dependency-updates
+    description: Flag outdated or vulnerable dependencies
+    severity: warning
+  - name: dead-code
+    description: Detect and suggest removal of unused code
+    severity: info
+  - name: maintainability
+    description: Highlight long functions, high cyclomatic complexity
+    severity: warning
+
+doc_generation:
+  enabled: true
+  types: [summary, diagram, docstring]
