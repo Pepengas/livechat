@@ -38,7 +38,7 @@ export function LoginForm({
     e.stopPropagation(); // Prevent input blur
     setIsPasswordVisible(!isPasswordVisible);
   };
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     // Simple validation
     if (!emailValue || !passwordValue) {
@@ -52,17 +52,29 @@ export function LoginForm({
       onLoginAttempt(false);
       return;
     }
-    // Simulate authentication check (for demo purposes)
-    // In a real app, this would call an API
-    const isCorrectEmail = emailValue === 'demo@example.com';
-    const isCorrectPassword = passwordValue === 'password123';
-    if (isCorrectEmail && isCorrectPassword) {
-      // Login successful
-      setErrorMessage('');
-      onLoginAttempt(true);
-    } else {
-      // Login failed
-      setErrorMessage('Invalid email or password');
+
+    try {
+      const baseUrl = import.meta.env.VITE_API_URL || '/api';
+      const response = await fetch(`${baseUrl}/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify({ email: emailValue, password: passwordValue })
+      });
+      const data = await response.json().catch(() => ({}));
+      if (response.ok && data.token) {
+        localStorage.setItem('token', data.token);
+        setErrorMessage('');
+        onLoginAttempt(true);
+      } else {
+        setErrorMessage(data.message || 'Invalid email or password');
+        onLoginAttempt(false);
+      }
+    } catch (err) {
+      console.error('Login error:', err);
+      setErrorMessage('Login failed');
       onLoginAttempt(false);
     }
   };
@@ -92,7 +104,7 @@ export function LoginForm({
         Login
       </button>
       <div className="mt-4 text-sm text-center text-white">
-        <p>For demo: use demo@example.com / password123</p>
+        <p>Enter your registered email and password to continue.</p>
       </div>
     </form>;
 }
