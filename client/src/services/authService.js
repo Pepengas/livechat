@@ -1,7 +1,10 @@
-import axios, { API_URL } from './apiConfig';
+import apiClient, { API_URL } from './apiConfig';
 
 // Setup axios interceptors for handling auth errors
-axios.interceptors.response.use(
+// Use a shared axios instance from apiConfig so interceptors aren't registered
+// multiple times across the app. This keeps builds predictable in different
+// environments.
+apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
     if (error.response?.status === 401 && localStorage.getItem('token')) {
@@ -20,7 +23,7 @@ axios.interceptors.response.use(
  */
 export const registerUser = async (userData) => {
   try {
-    const response = await axios.post(`${API_URL}/auth/register`, userData);
+    const response = await apiClient.post(`${API_URL}/auth/register`, userData);
     if (response.data.token) {
       localStorage.setItem('token', response.data.token);
     }
@@ -38,7 +41,7 @@ export const registerUser = async (userData) => {
  */
 export const loginUser = async (email, password) => {
   try {
-    const response = await axios.post(`${API_URL}/auth/login`, { email, password });
+    const response = await apiClient.post(`${API_URL}/auth/login`, { email, password });
     if (response.data.token) {
       localStorage.setItem('token', response.data.token);
     }
@@ -54,7 +57,7 @@ export const loginUser = async (email, password) => {
  */
 export const logoutUser = async () => {
   try {
-    await axios.post(`${API_URL}/auth/logout`);
+    await apiClient.post(`${API_URL}/auth/logout`);
     localStorage.removeItem('token');
   } catch (error) {
     console.error('Logout error:', error);
@@ -70,7 +73,7 @@ export const logoutUser = async () => {
  */
 export const getCurrentUser = async () => {
   try {
-    const response = await axios.get(`${API_URL}/auth/profile`);
+    const response = await apiClient.get(`${API_URL}/auth/profile`);
     return response.data;
   } catch (error) {
     if (error.response?.status === 401) {
@@ -87,7 +90,7 @@ export const getCurrentUser = async () => {
  */
 export const updateUserProfile = async (userData) => {
   try {
-    const response = await axios.put(`${API_URL}/auth/profile`, userData);
+    const response = await apiClient.put(`${API_URL}/auth/profile`, userData);
     return response.data;
   } catch (error) {
     throw error.response?.data || { message: 'Failed to update profile' };
@@ -104,7 +107,7 @@ export const uploadAvatar = async (file) => {
     const formData = new FormData();
     formData.append('avatar', file);
     
-    const response = await axios.post(`${API_URL}/auth/avatar`, formData, {
+    const response = await apiClient.post(`${API_URL}/auth/avatar`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
@@ -113,5 +116,23 @@ export const uploadAvatar = async (file) => {
     return response.data;
   } catch (error) {
     throw error.response?.data || { message: 'Failed to upload avatar' };
+  }
+};
+
+/**
+ * Reset a user's password using email and a new password
+ * @param {string} email - User email
+ * @param {string} newPassword - New password to set
+ * @returns {Promise<Object>} Response message
+ */
+export const resetPassword = async (email, newPassword) => {
+  try {
+    const response = await apiClient.post(`${API_URL}/auth/forgot-password`, {
+      email,
+      newPassword
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || { message: 'Failed to reset password' };
   }
 };
