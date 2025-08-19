@@ -284,6 +284,10 @@ const resetPassword = async (req, res) => {
     res.json({ message: 'Password reset successful' });
   } catch (error) {
     console.error('Reset password error:', error);
+    if (error.name === 'ValidationError') {
+      const messages = Object.values(error.errors).map((err) => err.message);
+      return res.status(400).json({ message: messages.join(', ') });
+    }
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };

@@ -16,6 +16,11 @@ const ForgotPassword = () => {
       setSuccessMessage('');
       return;
     }
+    if (newPassword.length < 8) {
+      setErrorMessage('Password must be at least 8 characters');
+      setSuccessMessage('');
+      return;
+    }
     try {
       await resetPassword(email, newPassword);
       setErrorMessage('');
@@ -23,10 +28,18 @@ const ForgotPassword = () => {
       setTimeout(() => navigate('/login'), 1500);
     } catch (err) {
       setSuccessMessage('');
-      setErrorMessage(err.message || err.response?.data?.message || 'Password reset failed');
+try {
+      await resetPassword(email, newPassword);
+      setErrorMessage('');
+      setSuccessMessage('Password reset successfully');
+      setTimeout(() => navigate('/login'), 1500);
+    } catch (err) {
+      setSuccessMessage('');
+      setErrorMessage(
+        err.response?.data?.message || err.message || 'Password reset failed'
+      );
     }
   };
-
   return (
     <div className="flex flex-col items-center justify-center w-full min-h-screen px-6 py-12 bg-navy-800">
       <div className="w-full max-w-md mx-auto">
