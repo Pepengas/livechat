@@ -115,3 +115,21 @@ export const uploadAvatar = async (file) => {
     throw error.response?.data || { message: 'Failed to upload avatar' };
   }
 };
+
+/**
+ * Reset a user's password using email and a new password
+ * @param {string} email - User email
+ * @param {string} newPassword - New password to set
+ * @returns {Promise<Object>} Response message
+ */
+export const resetPassword = async (email, newPassword) => {
+  try {
+    const response = await axios.post(`${API_URL}/auth/forgot-password`, {
+      email,
+      newPassword,
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || { message: 'Failed to reset password' };
+  }
+};
