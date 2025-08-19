@@ -127,7 +127,7 @@ export const uploadAvatar = async (file) => {
  */
 export const resetPassword = async (email, newPassword) => {
   try {
-    const response = await apiClient.post(`${API_URL}/auth/forgot-password`, {
+const response = await apiClient.post(`${API_URL}/auth/forgot-password`, {
       email,
       newPassword
     });
