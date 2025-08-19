@@ -1,5 +1,4 @@
 const jwt = require('jsonwebtoken');
-const crypto = require('crypto');
 const User = require('../models/user.model');
 
 /**
@@ -251,55 +250,35 @@ const logout = async (req, res) => {
 };
 
 /**
- * @desc    Initiate password reset
+ * @desc    Reset user password using email and new password
  * @route   POST /api/auth/forgot-password
  * @access  Public
  */
-const forgotPassword = async (req, res) => {
+const resetPassword = async (req, res) => {
   try {
-    const { email } = req.body;
+    const { email, newPassword } = req.body || {};
+
+    // Validate input types before trimming to avoid runtime errors
+    if (
+      typeof email !== 'string' ||
+      typeof newPassword !== 'string' ||
+      !email.trim() ||
+      !newPassword.trim()
+    ) {
+      return res
+        .status(400)
+        .json({ message: 'Email and new password are required' });
+    }
+
     const normalizedEmail = email.trim().toLowerCase();
-    const user = await User.findOne({ email: normalizedEmail });
+    const user = await User.findOne({ email: normalizedEmail }).select('+password');
 
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    const resetToken = crypto.randomBytes(20).toString('hex');
-    user.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
-    user.resetPasswordExpire = Date.now() + 10 * 60 * 1000; // 10 minutes
-    await user.save({ validateBeforeSave: false });
-
-    // In a real app we'd email the token. For now, return it for testing.
-    res.json({ message: 'Password reset token generated', resetToken });
-  } catch (error) {
-    console.error('Forgot password error:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
-  }
-};
-
-/**
- * @desc    Reset user password
- * @route   POST /api/auth/reset-password
- * @access  Public
- */
-const resetPassword = async (req, res) => {
-  try {
-    const { token, password } = req.body;
-    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
-
-    const user = await User.findOne({
-      resetPasswordToken: hashedToken,
-      resetPasswordExpire: { $gt: Date.now() },
-    });
-
-    if (!user) {
-      return res.status(400).json({ message: 'Invalid or expired token' });
-    }
-
-    user.password = password;
-    user.resetPasswordToken = undefined;
-    user.resetPasswordExpire = undefined;
+    // Update password; pre-save hook will hash it
+    user.password = newPassword;
     await user.save();
 
     res.json({ message: 'Password reset successful' });
@@ -316,7 +295,6 @@ module.exports = {
   updateProfile,
   uploadAvatar,
   logout,
-  forgotPassword,
   resetPassword,
   generateToken,
 };
