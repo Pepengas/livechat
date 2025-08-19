@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { register, login, getProfile, updateProfile, logout, uploadAvatar, forgotPassword, resetPassword } = require('../controllers/auth.controller');
+const { register, login, getProfile, updateProfile, logout, uploadAvatar, resetPassword } = require('../controllers/auth.controller');
 const multer = require('multer');
 const upload = multer({ storage: multer.memoryStorage() });
 const { protect } = require('../middleware/auth.middleware');
@@ -8,8 +8,7 @@ const { protect } = require('../middleware/auth.middleware');
 // Public routes
 router.post('/register', register);
 router.post('/login', login);
-router.post('/forgot-password', forgotPassword);
-router.post('/reset-password', resetPassword);
+router.post('/forgot-password', resetPassword);
 
 // Protected routes
 router.get('/profile', protect, getProfile);
