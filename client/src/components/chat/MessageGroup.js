@@ -1,6 +1,7 @@
 import React from 'react';
 import { format } from 'date-fns';
 import MessageItem from './MessageItem';
+import linkify from '../../utils/linkify';
 
 const avatarUrl = (sender) => {
   if (!sender) return '';
@@ -16,7 +17,7 @@ const MessageGroup = ({ group, currentUser, onDelete }) => {
     return (
       <div className="text-center text-sm text-gray-500 my-2">
         {group.items.map((m) => (
-          <div key={m.id || m._id}>{m.text || m.content}</div>
+          <div key={m.id || m._id}>{linkify(m.text || m.content)}</div>
         ))}
       </div>
     );
