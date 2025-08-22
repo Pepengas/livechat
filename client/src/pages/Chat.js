@@ -4,7 +4,7 @@ import { useChat } from '../hooks/useChat';
 
 // Components
 import Sidebar from '../components/chat/Sidebar';
-import ChatArea from '../components/chat/ChatArea';
+import ChatWindow from '../components/chat/ChatWindow';
 import ProfileModal from '../components/modals/ProfileModal';
 import CreateGroupModal from '../components/modals/CreateGroupModal';
 import UserProfileModal from '../components/modals/UserProfileModal';
@@ -84,8 +84,8 @@ const Chat = () => {
         openUserProfileModal={openUserProfileModal}
       />
 
-      {/* Chat Area */}
-      <ChatArea
+      {/* Chat Window */}
+      <ChatWindow
         toggleMobileMenu={toggleMobileMenu}
         openUserProfileModal={openUserProfileModal}
         openGroupInfoModal={openGroupInfoModal}

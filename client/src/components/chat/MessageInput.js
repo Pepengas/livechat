@@ -210,7 +210,7 @@ const MessageInput = ({ chatId, onTyping }) => {
       )}
       
       {/* Message input form */}
-      <form onSubmit={handleSubmit} className="flex items-center">
+      <form onSubmit={handleSubmit} className="flex items-end gap-2">
         <button 
           type="button"
           onClick={() => fileInputRef.current.click()}
@@ -234,13 +234,13 @@ const MessageInput = ({ chatId, onTyping }) => {
           value={message}
           onChange={handleInputChange}
           onKeyDown={onKeyDown}
-          placeholder="Type a message..."
-          className="flex-1 p-3 rounded-full bg-gray-100 dark:bg-gray-600 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 mx-2"
+          placeholder="Message"
+          className="flex-1 px-3 py-2 rounded-md bg-white dark:bg-gray-800 dark:text-gray-100 border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-primary-500"
         />
         
-        <button 
-          type="submit" 
-          className="p-2 bg-primary-600 text-white rounded-full hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+        <button
+          type="submit"
+          className="p-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
           disabled={message === '' && attachments.length === 0}
           aria-label="Send message"
         >
