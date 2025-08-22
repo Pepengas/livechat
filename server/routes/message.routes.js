@@ -9,18 +9,10 @@ const {
   uploadAttachments,
 } = require('../controllers/message.controller');
 const multer = require('multer');
-const path = require('path');
-const {
-  generateUniqueFilename,
-  isValidFileType,
-} = require('../utils/fileUpload');
+const { isValidFileType } = require('../utils/fileUpload');
 
-const storage = multer.diskStorage({
-  destination: path.join(__dirname, '../uploads'),
-  filename: (req, file, cb) => {
-    cb(null, generateUniqueFilename(file.originalname));
-  },
-});
+// Store files in memory so we can convert them to Base64 before saving
+const storage = multer.memoryStorage();
 
 const upload = multer({
   storage,
