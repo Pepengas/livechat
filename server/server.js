@@ -21,15 +21,13 @@ const socketService = require('./services/socket.service');
 const app = express();
 
 // Middleware
-// Allow requests from common deployment origins regardless of environment
-const allowedOrigins = [
-  'http://localhost:3000',
-  process.env.CLIENT_URL,
-].filter(Boolean);
+// Allow requests from environment and any localhost/127.0.0.1 origin
+const envOrigins = [process.env.CLIENT_URL].filter(Boolean);
+const localhostRegex = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
 
 const corsOptions = {
   origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
+    if (!origin || envOrigins.includes(origin) || localhostRegex.test(origin)) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
@@ -73,7 +71,13 @@ const server = http.createServer(app);
 // Create Socket.IO server
 const io = socketIo(server, {
   cors: {
-    origin: allowedOrigins,
+    origin: (origin, callback) => {
+      if (!origin || envOrigins.includes(origin) || localhostRegex.test(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     methods: ['GET', 'POST'],
     credentials: true
   }
