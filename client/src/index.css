@@ -109,16 +109,10 @@
 }
 
 .msg-text {
-  white-space: break-spaces;
-  word-break: normal;
+  white-space: pre-wrap;
+  word-break: break-word;
   overflow-wrap: break-word;
   display: inline;
-}
-
-@supports not (white-space: break-spaces) {
-  .msg-text {
-    white-space: pre-wrap;
-  }
 }
 
 @media (min-width: 768px) {
