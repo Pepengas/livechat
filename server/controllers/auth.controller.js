@@ -277,8 +277,8 @@ const resetPassword = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Update password; pre-save hook will hash it
-    user.password = newPassword;
+    // Update password using trimmed value; pre-save hook will hash it
+    user.password = newPassword.trim();
     await user.save();
 
     res.json({ message: 'Password reset successful' });
