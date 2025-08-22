@@ -236,10 +236,10 @@ const uploadAttachments = async (req, res) => {
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({ message: 'No files uploaded' });
     }
-
+    // Convert files to Base64 data URLs so they persist in the database
     const attachments = req.files.map((file) => ({
       type: file.mimetype,
-      url: `${req.protocol}://${req.get('host')}/uploads/${file.filename}`,
+      url: `data:${file.mimetype};base64,${file.buffer.toString('base64')}`,
       name: file.originalname,
       size: file.size,
     }));

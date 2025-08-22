@@ -94,6 +94,12 @@ The application comes with two test accounts:
 
 ## Recent Bug Fixes and Improvements
 
+### Persistent Attachment Storage
+
+**Issue:** Image attachments were stored on the server's local filesystem, causing them to break after redeploys or updates.
+
+**Fix:** Uploads are now converted to Base64 and saved with messages in the database, ensuring images remain visible in chat history even after server updates.
+
 ### MongoDB Connection and Server Configuration Fix (Latest)
 
 **Issue:** The backend server was hanging and not starting properly due to MongoDB connection issues, preventing the group creation functionality and WebSocket connections from working.
