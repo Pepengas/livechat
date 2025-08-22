@@ -38,6 +38,7 @@ const register = async (req, res) => {
 
     const normalizedEmail = email.trim().toLowerCase();
     const normalizedName = name.trim();
+    const normalizedPassword = password.trim();
 
     // Check if user already exists
     const userExists = await User.findOne({ email: normalizedEmail });
@@ -50,7 +51,7 @@ const register = async (req, res) => {
     const newUser = await User.create({
       name: normalizedName,
       email: normalizedEmail,
-      password,
+      password: normalizedPassword,
     });
 
     if (newUser) {
@@ -98,12 +99,13 @@ const login = async (req, res) => {
     }
 
     const normalizedEmail = email.trim().toLowerCase();
+    const normalizedPassword = password.trim();
 
     // Find user by email
     const existingUser = await User.findOne({ email: normalizedEmail }).select('+password');
 
     // Check if user exists and password matches
-    if (existingUser && (await existingUser.comparePassword(password))) {
+    if (existingUser && (await existingUser.comparePassword(normalizedPassword))) {
       // Update user status to online
       existingUser.status = 'online';
       existingUser.lastActive = Date.now();
@@ -168,9 +170,9 @@ const updateProfile = async (req, res) => {
       user.email = req.body.email ? req.body.email.trim().toLowerCase() : user.email;
       user.avatar = req.body.avatar || user.avatar;
 
-      // If password is provided, update it
+      // If password is provided, update it (trim to avoid stray spaces)
       if (req.body.password) {
-        user.password = req.body.password;
+        user.password = req.body.password.trim();
       }
 
       const updatedUser = await user.save();
@@ -277,8 +279,8 @@ const resetPassword = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Update password; pre-save hook will hash it
-    user.password = newPassword;
+    // Update password using trimmed value; pre-save hook will hash it
+    user.password = newPassword.trim();
     await user.save();
 
     res.json({ message: 'Password reset successful' });
