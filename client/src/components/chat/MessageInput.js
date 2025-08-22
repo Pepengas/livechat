@@ -109,7 +109,7 @@ const MessageInput = ({ chatId, onTyping }) => {
   // Handle message submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if ((message === '' && attachments.length === 0) || !chatId) return;
     
     try {
@@ -133,6 +133,13 @@ const MessageInput = ({ chatId, onTyping }) => {
       setIsTyping(false);
     } catch (error) {
       console.error('Error sending message:', error);
+    }
+  };
+
+  const onKeyDown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit(e);
     }
   };
 
@@ -222,11 +229,12 @@ const MessageInput = ({ chatId, onTyping }) => {
           multiple 
         />
         
-        <input 
-          type="text" 
-          value={message} 
-          onChange={handleInputChange} 
-          placeholder="Type a message..." 
+        <input
+          type="text"
+          value={message}
+          onChange={handleInputChange}
+          onKeyDown={onKeyDown}
+          placeholder="Type a message..."
           className="flex-1 p-3 rounded-full bg-gray-100 dark:bg-gray-600 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 mx-2"
         />
         
