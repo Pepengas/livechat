@@ -453,12 +453,23 @@ export const ChatProvider = ({ children }) => {
     try {
       const data = await deleteMessage(messageId, scope);
 
-      // Remove message from current chat
-      setMessages(messages.filter(msg => msg._id !== messageId));
-      
-      // Update chat list if latest message was deleted
+      setMessages(prevMessages => {
+        const updated = prevMessages.filter(msg => msg._id !== messageId);
+
+        if (scope === 'me') {
+          const latest = updated[updated.length - 1] || null;
+          setChats(prevChats =>
+            prevChats.map(chat =>
+              chat._id === chatId ? { ...chat, latestMessage: latest } : chat
+            )
+          );
+        }
+
+        return updated;
+      });
+
       if (data.updatedLatestMessage) {
-        setChats(prevChats => 
+        setChats(prevChats =>
           prevChats.map(chat => {
             if (chat._id === chatId) {
               return {
@@ -470,7 +481,7 @@ export const ChatProvider = ({ children }) => {
           })
         );
       }
-      
+
       return data;
     } catch (err) {
       setError(err.message || 'Failed to delete message');
