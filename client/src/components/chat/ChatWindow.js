@@ -8,8 +8,9 @@ import { useDebounce } from '../../hooks/useDebounce';
 import MessageList from './MessageList';
 import MessageInput from './MessageInput';
 import LoadingSpinner from '../common/LoadingSpinner';
+import TypingIndicator from './TypingIndicator';
 
-const ChatArea = ({ toggleMobileMenu, openUserProfileModal, openGroupInfoModal }) => {
+const ChatWindow = ({ toggleMobileMenu, openUserProfileModal, openGroupInfoModal }) => {
   const { currentUser } = useAuth();
   const { 
     selectedChat, 
@@ -249,12 +250,7 @@ const ChatArea = ({ toggleMobileMenu, openUserProfileModal, openGroupInfoModal }
               )}
 
               {getTypingText() && (
-                <div className="typing-indicator text-gray-500 dark:text-gray-400 text-sm">
-                  {getTypingText()}
-                  <span></span>
-                  <span></span>
-                  <span></span>
-                </div>
+                <TypingIndicator text={getTypingText()} />
               )}
 
               <div ref={messagesEndRef} />
@@ -271,4 +267,4 @@ const ChatArea = ({ toggleMobileMenu, openUserProfileModal, openGroupInfoModal }
     );
   };
 
-export default ChatArea;
+export default ChatWindow;
