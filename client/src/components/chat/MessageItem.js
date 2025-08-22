@@ -2,9 +2,11 @@ import React from 'react';
 import { ClipboardIcon, FaceSmileIcon, TrashIcon } from '@heroicons/react/24/outline';
 
 const MessageItem = ({ message, isOwn, onDelete }) => {
+  const text = message.text || message.content;
+
   const handleCopy = () => {
-    if (message.text) {
-      navigator.clipboard?.writeText(message.text);
+    if (text) {
+      navigator.clipboard?.writeText(text);
     }
   };
 
@@ -38,9 +40,9 @@ const MessageItem = ({ message, isOwn, onDelete }) => {
 
   return (
     <div className="relative group">
-      {message.text && (
+      {text && (
         <div className="text-[15px] leading-6 whitespace-pre-wrap break-words">
-          {message.text}
+          {text}
         </div>
       )}
       {message.attachments && message.attachments.map((att) => (

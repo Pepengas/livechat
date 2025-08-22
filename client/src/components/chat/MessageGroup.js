@@ -16,7 +16,7 @@ const MessageGroup = ({ group, currentUser, onDelete }) => {
     return (
       <div className="text-center text-sm text-gray-500 my-2">
         {group.items.map((m) => (
-          <div key={m.id || m._id}>{m.text}</div>
+          <div key={m.id || m._id}>{m.text || m.content}</div>
         ))}
       </div>
     );
