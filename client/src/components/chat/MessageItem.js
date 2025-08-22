@@ -1,5 +1,6 @@
 import React from 'react';
 import { ClipboardIcon, FaceSmileIcon, TrashIcon } from '@heroicons/react/24/outline';
+import linkify from '../../utils/linkify';
 
 const MessageItem = ({ message, isOwn, onDelete }) => {
   const text = message.text || message.content;
@@ -42,7 +43,7 @@ const MessageItem = ({ message, isOwn, onDelete }) => {
     <div className="relative group">
       {text && (
         <div className="text-[15px] leading-6 whitespace-pre-wrap break-words">
-          {text}
+          {linkify(text)}
         </div>
       )}
       {message.attachments && message.attachments.map((att) => (
