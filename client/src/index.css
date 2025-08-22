@@ -106,6 +106,7 @@
   padding: 10px 14px;
   border-radius: 18px;
   line-height: 1.35;
+  writing-mode: horizontal-tb;
 }
 
 .msg-text {
@@ -113,6 +114,7 @@
   word-break: break-word;
   overflow-wrap: break-word;
   display: inline;
+  writing-mode: horizontal-tb;
 }
 
 @media (min-width: 768px) {
