@@ -63,6 +63,19 @@ const socketService = (io) => {
       });
     });
 
+    // Handle new thread message
+    socket.on('new-thread-message', (messageData) => {
+      const chat = messageData.chat;
+
+      if (!chat.users) return console.log('Chat users not defined');
+
+      chat.users.forEach((user) => {
+        if (user._id !== messageData.sender._id) {
+          socket.to(user._id).emit('thread:messageCreated', messageData);
+        }
+      });
+    });
+
     // Handle typing status
     socket.on('typing', (chatId) => {
       socket.to(chatId).emit('typing', { chatId, userId: socket.userId });
