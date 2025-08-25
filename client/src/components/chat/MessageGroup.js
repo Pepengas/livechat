@@ -1,6 +1,7 @@
 import React from 'react';
 import { format } from 'date-fns';
 import MessageItem from './MessageItem';
+import TimeDivider from './TimeDivider';
 import linkify from '../../utils/linkify';
 
 const avatarUrl = (sender) => {
@@ -11,48 +12,83 @@ const avatarUrl = (sender) => {
   );
 };
 
-const MessageGroup = ({ group, currentUser, onDelete }) => {
+const MessageGroup = ({ group, currentUser, onDelete, prevMessageDate }) => {
   if (!group.sender) {
     // system messages
-    return (
-      <div className="text-center text-sm text-gray-500 my-2">
-        {group.items.map((m) => (
-          <div key={m.id || m._id}>{linkify(m.text || m.content)}</div>
-        ))}
-      </div>
-    );
+    let last = prevMessageDate ? new Date(prevMessageDate) : null;
+    const elements = [];
+    group.items.forEach((m) => {
+      const msgDate = new Date(m.createdAt);
+      const minuteChanged =
+        !last ||
+        msgDate.getHours() !== last.getHours() ||
+        msgDate.getMinutes() !== last.getMinutes();
+      if (minuteChanged) {
+        elements.push(
+          <TimeDivider key={`time-${m.id || m._id}`} time={msgDate} />
+        );
+      }
+      elements.push(
+        <div
+          key={m.id || m._id}
+          className="text-center text-sm text-gray-500 my-2"
+        >
+          {linkify(m.text || m.content)}
+        </div>
+      );
+      last = msgDate;
+    });
+    return <div className="mb-3">{elements}</div>;
   }
 
   const isOwn = (group.sender._id || group.sender.id) === (currentUser._id || currentUser.id);
-  const first = group.items[0];
-  const rest = group.items.slice(1);
-  const shortTime = format(group.startAt, 'h:mm a');
-  const fullTime = group.startAt.toLocaleString();
-
-  return (
-    <div className="group mb-3">
-      <div className="grid grid-cols-[48px_1fr] gap-3">
-        <img
-          src={avatarUrl(group.sender)}
-          className="w-12 h-12 rounded-full"
-          alt={group.sender.name}
-        />
-        <div>
-          <div className="flex items-baseline gap-2">
-            <span className="font-medium text-sm">{group.sender.name}</span>
-            <time className="text-xs text-gray-500" title={fullTime}>{shortTime}</time>
+  let last = prevMessageDate ? new Date(prevMessageDate) : null;
+  const elements = [];
+  group.items.forEach((m, idx) => {
+    const msgDate = new Date(m.createdAt);
+    const minuteChanged =
+      !last ||
+      msgDate.getHours() !== last.getHours() ||
+      msgDate.getMinutes() !== last.getMinutes();
+    if (minuteChanged) {
+      elements.push(
+        <TimeDivider key={`time-${m.id || m._id}`} time={msgDate} />
+      );
+    }
+    if (idx === 0) {
+      const shortTime = format(msgDate, 'h:mm a');
+      const fullTime = msgDate.toLocaleString();
+      elements.push(
+        <div key={m.id || m._id} className="grid grid-cols-[48px_1fr] gap-3">
+          <img
+            src={avatarUrl(group.sender)}
+            className="w-12 h-12 rounded-full"
+            alt={group.sender.name}
+          />
+          <div>
+            <div className="flex items-baseline gap-2">
+              <span className="font-medium text-sm">{group.sender.name}</span>
+              <time className="text-xs text-gray-500" title={fullTime}>{shortTime}</time>
+            </div>
+            <MessageItem message={m} isOwn={isOwn} onDelete={onDelete} />
           </div>
-          <MessageItem message={first} isOwn={isOwn} onDelete={onDelete} />
         </div>
-      </div>
-      {rest.map((m) => (
-        <div key={m.id || m._id} className="grid grid-cols-[48px_1fr] gap-3 mt-1">
+      );
+    } else {
+      elements.push(
+        <div
+          key={m.id || m._id}
+          className="grid grid-cols-[48px_1fr] gap-3 mt-1"
+        >
           <div />
           <MessageItem message={m} isOwn={isOwn} onDelete={onDelete} />
         </div>
-      ))}
-    </div>
-  );
+      );
+    }
+    last = msgDate;
+  });
+
+  return <div className="group mb-3">{elements}</div>;
 };
 
 export default MessageGroup;

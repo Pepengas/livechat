@@ -38,22 +38,27 @@ const MessageList = ({ messages, currentUser, selectedChat }) => {
   };
 
   let lastDate = null;
+  let lastMessageDate = null;
   return (
     <div className="space-y-2">
       {groups.map((group) => {
         const dateStr = group.startAt.toDateString();
         const showDivider = lastDate !== dateStr;
         lastDate = dateStr;
-        return (
+        const element = (
           <React.Fragment key={group.key}>
             {showDivider && <DateDivider date={group.startAt} />}
             <MessageGroup
               group={group}
               currentUser={currentUser}
               onDelete={handleDeleteRequest}
+              prevMessageDate={lastMessageDate}
             />
           </React.Fragment>
         );
+        const lastItem = group.items[group.items.length - 1];
+        lastMessageDate = new Date(lastItem.createdAt);
+        return element;
       })}
       {messageToDelete && (
         <DeleteMessageModal
