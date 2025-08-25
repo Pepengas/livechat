@@ -44,7 +44,8 @@ const MessageGroup = ({ group, currentUser, onDelete, prevMessageDate }) => {
   const isOwn = (group.sender._id || group.sender.id) === (currentUser._id || currentUser.id);
   let last = prevMessageDate ? new Date(prevMessageDate) : null;
   const elements = [];
-  group.items.forEach((m, idx) => {
+  let prevType = 'divider';
+  group.items.forEach((m) => {
     const msgDate = new Date(m.createdAt);
     const minuteChanged =
       !last ||
@@ -54,12 +55,14 @@ const MessageGroup = ({ group, currentUser, onDelete, prevMessageDate }) => {
       elements.push(
         <TimeDivider key={`time-${m.id || m._id}`} time={msgDate} />
       );
+      prevType = 'divider';
     }
-    if (idx === 0) {
+    const showAvatar = prevType !== 'message';
+    if (showAvatar) {
       const shortTime = format(msgDate, 'h:mm a');
       const fullTime = msgDate.toLocaleString();
       elements.push(
-        <div key={m.id || m._id} className="grid grid-cols-[48px_1fr] gap-3">
+        <div key={m.id || m._id} className="message-row grid grid-cols-[48px_1fr] gap-3">
           <img
             src={avatarUrl(group.sender)}
             className="w-12 h-12 rounded-full"
@@ -78,13 +81,14 @@ const MessageGroup = ({ group, currentUser, onDelete, prevMessageDate }) => {
       elements.push(
         <div
           key={m.id || m._id}
-          className="grid grid-cols-[48px_1fr] gap-3 mt-1"
+          className="message-row grid grid-cols-[48px_1fr] gap-3 mt-1"
         >
-          <div />
+          <div className="avatar-spacer" />
           <MessageItem message={m} isOwn={isOwn} onDelete={onDelete} />
         </div>
       );
     }
+    prevType = 'message';
     last = msgDate;
   });
 
