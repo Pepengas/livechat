@@ -4,6 +4,7 @@ import groupMessages from '../../utils/groupMessages';
 import DateDivider from './DateDivider';
 import MessageGroup from './MessageGroup';
 import DeleteMessageModal from '../modals/DeleteMessageModal';
+import ThreadPanel from './ThreadPanel';
 
 const MessageList = ({ messages, currentUser, selectedChat }) => {
   const { deleteMessageById } = useChat();
@@ -68,6 +69,7 @@ const MessageList = ({ messages, currentUser, selectedChat }) => {
           onDeleteForEveryone={deleteForEveryone}
         />
       )}
+      <ThreadPanel />
     </div>
   );
 };
