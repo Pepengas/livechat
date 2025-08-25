@@ -7,6 +7,7 @@ const {
   deleteMessage,
   searchMessages,
   uploadAttachments,
+  getThread,
 } = require('../controllers/message.controller');
 const multer = require('multer');
 const { isValidFileType } = require('../utils/fileUpload');
@@ -35,6 +36,9 @@ router.post('/upload', upload.array('files'), uploadAttachments);
 
 // Send a new message
 router.post('/', sendMessage);
+
+// Get a message thread
+router.get('/:id/thread', getThread);
 
 // Get all messages for a chat
 router.get('/:chatId', getMessages);

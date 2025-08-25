@@ -15,7 +15,7 @@ const {
  */
 const sendMessage = async (req, res) => {
   try {
-    const { content, chatId, attachments = [] } = req.body;
+    const { content, chatId, attachments = [], parentMessageId } = req.body;
 
     if (!content && (!attachments || attachments.length === 0)) {
       return res.status(400).json({ message: 'Message content or attachments are required' });
@@ -37,6 +37,10 @@ const sendMessage = async (req, res) => {
       readBy: [req.user._id], // Sender has read the message
     };
 
+    if (parentMessageId) {
+      newMessage.parentMessage = parentMessageId;
+    }
+
     // Save the message
     let message = await Message.create(newMessage);
 
@@ -45,10 +49,18 @@ const sendMessage = async (req, res) => {
       .populate('sender', 'name email avatar')
       .populate('chat');
 
-    // Update the latest message in the chat
-    await Chat.findByIdAndUpdate(chatId, { latestMessage: message._id });
+    // Update the latest message in the chat only for top-level messages
+    if (!parentMessageId) {
+      await Chat.findByIdAndUpdate(chatId, { latestMessage: message._id });
+    } else {
+      await Message.findByIdAndUpdate(parentMessageId, { $inc: { threadCount: 1 } });
+    }
+    const messageObj = message.toObject();
+    if (parentMessageId) {
+      messageObj.parentMessageId = parentMessageId;
+    }
 
-    res.status(201).json(message);
+    res.status(201).json(messageObj);
   } catch (error) {
     console.error('Send message error:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
@@ -79,6 +91,7 @@ const getMessages = async (req, res) => {
     // Get messages for the chat excluding ones deleted for this user or everyone
     const messages = await Message.find({
         chat: chatId,
+        parentMessage: null,
         deletedForEveryone: { $ne: true },
         deletedFor: { $ne: req.user._id }
       })
@@ -89,6 +102,46 @@ const getMessages = async (req, res) => {
     res.json(messages);
   } catch (error) {
     console.error('Get messages error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+/**
+ * @desc    Get a message thread
+ * @route   GET /api/messages/:id/thread
+ * @access  Private
+ */
+const getThread = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const parent = await Message.findById(id)
+      .populate('sender', 'name email avatar')
+      .populate('readBy', 'name email avatar');
+
+    if (!parent) {
+      return res.status(404).json({ message: 'Message not found' });
+    }
+
+    const chat = await Chat.findById(parent.chat);
+    if (!chat || !chat.users.includes(req.user._id)) {
+      return res.status(403).json({ message: 'Not authorized to view this thread' });
+    }
+
+    const repliesDocs = await Message.find({
+      parentMessage: id,
+      deletedForEveryone: { $ne: true },
+      deletedFor: { $ne: req.user._id },
+    })
+      .populate('sender', 'name email avatar')
+      .populate('readBy', 'name email avatar')
+      .sort({ createdAt: 1 });
+
+    const replies = repliesDocs.map((m) => ({ ...m.toObject(), parentMessageId: id }));
+
+    res.json({ parent, replies });
+  } catch (error) {
+    console.error('Get thread error:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
@@ -256,6 +309,7 @@ module.exports = {
   getMessages,
   markAsRead,
   deleteMessage,
+  getThread,
   searchMessages,
   uploadAttachments,
 };
