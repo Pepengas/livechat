@@ -171,6 +171,18 @@
   min-width: 0;
 }
 
+.avatar-spacer {
+  width: 48px;
+}
+
+.time-divider {
+  @apply my-2 text-center;
+}
+
+.time-divider span {
+  @apply text-xs text-gray-400;
+}
+
 
 /* Reactions and quotes placeholder classes */
 .reaction-row {
