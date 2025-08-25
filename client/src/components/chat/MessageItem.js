@@ -1,11 +1,21 @@
 import React from 'react';
-import { ClipboardIcon, FaceSmileIcon, TrashIcon, ArrowUturnLeftIcon } from '@heroicons/react/24/outline';
+import { ClipboardIcon, TrashIcon, ArrowUturnLeftIcon } from '@heroicons/react/24/outline';
 import { useChat } from '../../hooks/useChat';
 import linkify from '../../utils/linkify';
+import ReactionBar from './ReactionBar';
 
 const MessageItem = ({ message, isOwn, onDelete }) => {
-  const { openThread } = useChat();
+  const { openThread, currentUser, toggleReaction } = useChat();
+  const barRef = React.useRef();
+  const isTouch = typeof window !== 'undefined' && 'ontouchstart' in window;
   const text = message.text || message.content;
+
+  const handleKeyDown = (e) => {
+    if (e.key === ':') {
+      e.preventDefault();
+      barRef.current?.openPicker();
+    }
+  };
 
   const handleCopy = () => {
     if (text) {
@@ -42,7 +52,7 @@ const MessageItem = ({ message, isOwn, onDelete }) => {
   };
 
   return (
-    <div className="relative group">
+    <div className="relative group" tabIndex={0} onKeyDown={handleKeyDown}>
       {text && (
         <div className="text-[15px] leading-6 whitespace-pre-wrap break-words">
           {linkify(text)}
@@ -51,21 +61,21 @@ const MessageItem = ({ message, isOwn, onDelete }) => {
       {message.attachments && message.attachments.map((att) => (
         <div key={att.id || att.url}>{renderAttachment(att)}</div>
       ))}
-      {message.reactions && Object.keys(message.reactions).length > 0 && (
-        <div className="mt-1 flex flex-wrap gap-1">
-          {Object.entries(message.reactions).map(([emoji, users]) => (
-            <div key={emoji} className="text-xs px-2 py-0.5 bg-gray-100 rounded-full">
-              {emoji} {users.length}
-            </div>
-          ))}
-        </div>
-      )}
+      <div
+        className={`absolute -top-8 left-0 transition-opacity ${
+          isTouch ? '' : 'opacity-0 group-hover:opacity-100'
+        }`}
+      >
+        <ReactionBar
+          ref={barRef}
+          message={message}
+          currentUserId={currentUser?._id}
+          onReact={(emoji) => toggleReaction(message._id || message.id, emoji)}
+        />
+      </div>
       <div className="absolute -top-2 right-0 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
         <button onClick={handleCopy} className="p-1 hover:bg-gray-200 rounded" title="Copy">
           <ClipboardIcon className="h-4 w-4" />
-        </button>
-        <button className="p-1 hover:bg-gray-200 rounded" title="React">
-          <FaceSmileIcon className="h-4 w-4" />
         </button>
         {!message.parentMessageId && (
           <button onClick={() => openThread(message)} className="p-1 hover:bg-gray-200 rounded" title="Reply in thread">

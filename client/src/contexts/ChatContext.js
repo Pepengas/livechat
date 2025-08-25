@@ -3,6 +3,7 @@ import { getChats, accessChat, createGroupChat, renameGroup, addToGroup, removeF
 import { getMessages, sendMessage, markAsRead, deleteMessage, getThread } from '../services/messageService';
 import { AuthContext } from './AuthContext';
 import { SocketContext } from './SocketContext';
+import axios, { API_URL } from '../services/apiConfig';
 
 export const ChatContext = createContext();
 
@@ -22,6 +23,21 @@ export const ChatProvider = ({ children }) => {
   const [unreadCounts, setUnreadCounts] = useState({});
   const [activeThreadParent, setActiveThreadParent] = useState(null);
   const [threadMessages, setThreadMessages] = useState([]);
+
+  const updateMessageReactions = (messageId, reactions) => {
+    setMessages((prev) => prev.map((m) => (m._id === messageId ? { ...m, reactions } : m)));
+    setMessageCache((prev) => {
+      const updated = {};
+      for (const [chatId, msgs] of Object.entries(prev)) {
+        updated[chatId] = msgs.map((m) => (m._id === messageId ? { ...m, reactions } : m));
+      }
+      return updated;
+    });
+    setThreadMessages((prev) => prev.map((m) => (m._id === messageId ? { ...m, reactions } : m)));
+    if (activeThreadParent && activeThreadParent._id === messageId) {
+      setActiveThreadParent((prev) => ({ ...prev, reactions }));
+    }
+  };
 
   // Fetch all chats when authenticated
   useEffect(() => {
@@ -240,6 +256,10 @@ export const ChatProvider = ({ children }) => {
       });
     });
 
+    socket.on('message:reactionUpdated', ({ messageId, reactions }) => {
+      updateMessageReactions(messageId, reactions);
+    });
+
     socket.on('thread:messageCreated', (newMessage) => {
       if (activeThreadParent && newMessage.parentMessageId === activeThreadParent._id) {
         setThreadMessages((prev) => [...prev, newMessage]);
@@ -287,6 +307,7 @@ export const ChatProvider = ({ children }) => {
       socket.off('message:deleted');
       socket.off('messages-read');
       socket.off('user-avatar-updated');
+      socket.off('message:reactionUpdated');
       socket.off('thread:messageCreated');
     };
   }, [socket, selectedChat, currentUser, activeThreadParent]);
@@ -653,6 +674,35 @@ export const ChatProvider = ({ children }) => {
     }
   };
 
+  const toggleReaction = async (messageId, emoji) => {
+    let target = messages.find((m) => m._id === messageId);
+    if (!target) {
+      for (const msgs of Object.values(messageCache)) {
+        const found = msgs.find((m) => m._id === messageId);
+        if (found) {
+          target = found;
+          break;
+        }
+      }
+    }
+    if (!target) return;
+    const existing = target.reactions || [];
+    const hasReacted = existing.some(
+      (r) => r.emoji === emoji && r.userId === currentUser._id
+    );
+    const reactions = hasReacted
+      ? existing.filter(
+          (r) => !(r.emoji === emoji && r.userId === currentUser._id)
+        )
+      : [...existing, { emoji, userId: currentUser._id }];
+    updateMessageReactions(messageId, reactions);
+    try {
+      await axios.post(`${API_URL}/messages/${messageId}/reactions`, { emoji });
+    } catch (err) {
+      console.error('Failed to toggle reaction:', err);
+    }
+  };
+
   const startTyping = (chatId) => {
     if (socket && selectedChat) {
       socket.emit('typing', chatId);
@@ -697,9 +747,11 @@ export const ChatProvider = ({ children }) => {
     sendNewMessage,
     markMessageAsRead,
     deleteMessageById,
+    toggleReaction,
     startTyping,
     stopTyping,
-    getTotalUnreadCount
+    getTotalUnreadCount,
+    currentUser
   };
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;
