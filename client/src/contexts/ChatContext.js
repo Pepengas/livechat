@@ -13,6 +13,7 @@ export const ChatProvider = ({ children }) => {
   const [chats, setChats] = useState([]);
   const [selectedChat, setSelectedChat] = useState(null);
   const [messages, setMessages] = useState([]);
+  const [messageCache, setMessageCache] = useState({});
   const [loading, setLoading] = useState(false);
   const [chatLoading, setChatLoading] = useState(false);
   const [messageLoading, setMessageLoading] = useState(false);
@@ -63,11 +64,19 @@ export const ChatProvider = ({ children }) => {
         }));
       }
 
+      setMessageCache((prev) => ({
+        ...prev,
+        [newMessage.chat._id]: [
+          ...(prev[newMessage.chat._id] || []),
+          newMessage,
+        ],
+      }));
+
       // Update chat list to show latest message
       setChats((prevChats) => {
         const updatedChat = {
           ...newMessage.chat,
-          latestMessage: newMessage
+          latestMessage: newMessage,
         };
 
         // Remove the chat from the list and add it to the beginning
@@ -120,22 +129,34 @@ export const ChatProvider = ({ children }) => {
     // Removed from chat
     socket.on('chat:removed', (chatId) => {
       setChats((prevChats) => prevChats.filter((chat) => chat._id !== chatId));
-      
+
       // If the removed chat is the selected chat, clear selection
       if (selectedChat && selectedChat._id === chatId) {
         setSelectedChat(null);
         setMessages([]);
       }
+
+      setMessageCache((prev) => {
+        const { [chatId]: _, ...rest } = prev;
+        return rest;
+      });
     });
 
     // Message deleted
     socket.on('message:deleted', ({ messageId, chatId, newLatestMessage }) => {
       // Update messages if in the same chat
       if (selectedChat && selectedChat._id === chatId) {
-        setMessages((prevMessages) => 
+        setMessages((prevMessages) =>
           prevMessages.filter((msg) => msg._id !== messageId)
         );
       }
+
+      setMessageCache((prev) => ({
+        ...prev,
+        [chatId]: (prev[chatId] || []).filter(
+          (msg) => msg._id !== messageId
+        ),
+      }));
 
       // Update chat list with new latest message
       setChats((prevChats) => {
@@ -143,7 +164,7 @@ export const ChatProvider = ({ children }) => {
           if (chat._id === chatId) {
             return {
               ...chat,
-              latestMessage: newLatestMessage
+              latestMessage: newLatestMessage,
             };
           }
           return chat;
@@ -159,13 +180,22 @@ export const ChatProvider = ({ children }) => {
             if (!msg.readBy.includes(userId)) {
               return {
                 ...msg,
-                readBy: [...msg.readBy, userId]
+                readBy: [...msg.readBy, userId],
               };
             }
             return msg;
           })
         );
       }
+
+      setMessageCache((prev) => ({
+        ...prev,
+        [chatId]: (prev[chatId] || []).map((msg) =>
+          msg.readBy.includes(userId)
+            ? msg
+            : { ...msg, readBy: [...msg.readBy, userId] }
+        ),
+      }));
     });
 
     // User avatar updated
@@ -176,13 +206,14 @@ export const ChatProvider = ({ children }) => {
           users: chat.users.map((u) =>
             u._id === userId ? { ...u, avatar } : u
           ),
-          latestMessage: chat.latestMessage &&
+          latestMessage:
+            chat.latestMessage &&
             chat.latestMessage.sender._id === userId
-            ? {
-                ...chat.latestMessage,
-                sender: { ...chat.latestMessage.sender, avatar },
-              }
-            : chat.latestMessage,
+              ? {
+                  ...chat.latestMessage,
+                  sender: { ...chat.latestMessage.sender, avatar },
+                }
+              : chat.latestMessage,
         }))
       );
 
@@ -193,6 +224,18 @@ export const ChatProvider = ({ children }) => {
             : m
         )
       );
+
+      setMessageCache((prev) => {
+        const updated = {};
+        for (const [chatId, msgs] of Object.entries(prev)) {
+          updated[chatId] = msgs.map((m) =>
+            m.sender._id === userId
+              ? { ...m, sender: { ...m.sender, avatar } }
+              : m
+          );
+        }
+        return updated;
+      });
     });
 
     return () => {
@@ -232,17 +275,24 @@ export const ChatProvider = ({ children }) => {
   };
 
   const fetchMessages = async (chatId) => {
-    setMessageLoading(true);
+    const cached = messageCache[chatId];
+    if (cached) {
+      setMessages(cached);
+    } else {
+      setMessages([]);
+    }
+    setMessageLoading(!cached);
     setError(null);
     try {
       const data = await getMessages(chatId);
       setMessages(data);
+      setMessageCache((prev) => ({ ...prev, [chatId]: data }));
       // Mark messages as read when fetched
       markMessageAsRead(chatId);
       return data;
     } catch (err) {
       setError(err.message || 'Failed to fetch messages');
-      return [];
+      return cached || [];
     } finally {
       setMessageLoading(false);
     }
@@ -382,6 +432,11 @@ export const ChatProvider = ({ children }) => {
         setSelectedChat(null);
         setMessages([]);
       }
+
+      setMessageCache((prev) => {
+        const { [chatId]: _, ...rest } = prev;
+        return rest;
+      });
     } catch (err) {
       setError(err.message || 'Failed to leave group');
       throw err;
@@ -399,9 +454,13 @@ export const ChatProvider = ({ children }) => {
         socket.emit('new-message', data);
         console.log('Emitted new-message', data);
       }
-      
+
       // Add message to current chat
       setMessages([...messages, data]);
+      setMessageCache((prev) => ({
+        ...prev,
+        [chatId]: [...(prev[chatId] || []), data],
+      }));
       
       // Update chat list to show latest message
       setChats(prevChats => {
@@ -434,14 +493,25 @@ export const ChatProvider = ({ children }) => {
       
       // Update read status in messages
       if (selectedChat && selectedChat._id === chatId) {
-        setMessages(prevMessages => 
-          prevMessages.map(msg => ({
+        setMessages(prevMessages => {
+          const updated = prevMessages.map(msg => ({
             ...msg,
-            readBy: msg.readBy.includes(currentUser._id) 
-              ? msg.readBy 
-              : [...msg.readBy, currentUser._id]
-          }))
-        );
+            readBy: msg.readBy.includes(currentUser._id)
+              ? msg.readBy
+              : [...msg.readBy, currentUser._id],
+          }));
+          setMessageCache(prev => ({ ...prev, [chatId]: updated }));
+          return updated;
+        });
+      } else {
+        setMessageCache(prev => ({
+          ...prev,
+          [chatId]: (prev[chatId] || []).map(msg =>
+            msg.readBy.includes(currentUser._id)
+              ? msg
+              : { ...msg, readBy: [...msg.readBy, currentUser._id] }
+          ),
+        }));
       }
     } catch (err) {
       console.error('Failed to mark messages as read:', err);
@@ -455,6 +525,7 @@ export const ChatProvider = ({ children }) => {
 
       setMessages(prevMessages => {
         const updated = prevMessages.filter(msg => msg._id !== messageId);
+        setMessageCache(prev => ({ ...prev, [chatId]: updated }));
 
         if (scope === 'me') {
           const latest = updated[updated.length - 1] || null;
