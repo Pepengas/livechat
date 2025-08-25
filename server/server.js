@@ -21,29 +21,25 @@ const socketService = require('./services/socket.service');
 const app = express();
 
 // Middleware
-// Allow requests from configured origins, any localhost/127.0.0.1 origin,
-// and Railway-hosted domains
+// Configure allowed origins using CLIENT_URL and known dev URLs
+const extra = process.env.CLIENT_URL
+  ? process.env.CLIENT_URL.split(',').map((s) => s.trim())
+  : [];
 const allowedOrigins = [
-  ...(process.env.CLIENT_URL ? process.env.CLIENT_URL.split(',') : []),
+  'http://localhost:3000',
+  'http://localhost:5173',
   ...(process.env.RAILWAY_STATIC_URL
     ? [`https://${process.env.RAILWAY_STATIC_URL}`]
     : []),
+  ...extra,
 ];
-const localhostRegex = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
-const railwayRegex = /^https?:\/\/.*\.up\.railway\.app$/;
 
 const corsOptions = {
   origin: (origin, callback) => {
-    if (
-      !origin ||
-      allowedOrigins.includes(origin) ||
-      localhostRegex.test(origin) ||
-      railwayRegex.test(origin)
-    ) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
+    if (!origin || allowedOrigins.includes(origin)) {
+      return callback(null, true);
     }
+    return callback(new Error(`Not allowed by CORS: ${origin}`));
   },
   credentials: true,
 };
@@ -86,20 +82,14 @@ const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
     origin: (origin, callback) => {
-      if (
-        !origin ||
-        allowedOrigins.includes(origin) ||
-        localhostRegex.test(origin) ||
-        railwayRegex.test(origin)
-      ) {
-        callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'));
+      if (!origin || allowedOrigins.includes(origin)) {
+        return callback(null, true);
       }
+      return callback(new Error(`Not allowed by CORS: ${origin}`));
     },
     methods: ['GET', 'POST'],
-    credentials: true
-  }
+    credentials: true,
+  },
 });
 
 // Initialize socket service
