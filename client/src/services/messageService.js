@@ -21,7 +21,7 @@ export const getMessages = async (chatId) => {
  * @param {Array} attachments - Optional array of attachment files
  * @returns {Promise<Object>} Created message
  */
-export const sendMessage = async (chatId, content, attachments = []) => {
+export const sendMessage = async (chatId, content, attachments = [], parentMessageId) => {
   try {
     const payload = { chatId };
 
@@ -33,11 +33,24 @@ export const sendMessage = async (chatId, content, attachments = []) => {
       payload.attachments = attachments;
     }
 
+    if (parentMessageId) {
+      payload.parentMessageId = parentMessageId;
+    }
+
     const response = await axios.post(`${API_URL}/messages`, payload);
 
     return response.data;
   } catch (error) {
     throw error.response?.data || { message: 'Failed to send message' };
+  }
+};
+
+export const getThread = async (messageId) => {
+  try {
+    const response = await axios.get(`${API_URL}/messages/${messageId}/thread`);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || { message: 'Failed to fetch thread' };
   }
 };
 

@@ -1,8 +1,10 @@
 import React from 'react';
-import { ClipboardIcon, FaceSmileIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { ClipboardIcon, FaceSmileIcon, TrashIcon, ArrowUturnLeftIcon } from '@heroicons/react/24/outline';
+import { useChat } from '../../hooks/useChat';
 import linkify from '../../utils/linkify';
 
 const MessageItem = ({ message, isOwn, onDelete }) => {
+  const { openThread } = useChat();
   const text = message.text || message.content;
 
   const handleCopy = () => {
@@ -65,12 +67,25 @@ const MessageItem = ({ message, isOwn, onDelete }) => {
         <button className="p-1 hover:bg-gray-200 rounded" title="React">
           <FaceSmileIcon className="h-4 w-4" />
         </button>
+        {!message.parentMessageId && (
+          <button onClick={() => openThread(message)} className="p-1 hover:bg-gray-200 rounded" title="Reply in thread">
+            <ArrowUturnLeftIcon className="h-4 w-4" />
+          </button>
+        )}
         {isOwn && (
           <button onClick={handleDelete} className="p-1 hover:bg-gray-200 rounded" title="Delete">
             <TrashIcon className="h-4 w-4" />
           </button>
         )}
       </div>
+      {message.threadCount > 0 && !message.parentMessageId && (
+        <button
+          onClick={() => openThread(message)}
+          className="mt-1 text-xs text-blue-600 hover:underline"
+        >
+          {message.threadCount} {message.threadCount === 1 ? 'reply' : 'replies'} → View thread
+        </button>
+      )}
     </div>
   );
 };

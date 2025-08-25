@@ -1,6 +1,6 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { getChats, accessChat, createGroupChat, renameGroup, addToGroup, removeFromGroup, leaveGroup } from '../services/chatService';
-import { getMessages, sendMessage, markAsRead, deleteMessage } from '../services/messageService';
+import { getMessages, sendMessage, markAsRead, deleteMessage, getThread } from '../services/messageService';
 import { AuthContext } from './AuthContext';
 import { SocketContext } from './SocketContext';
 
@@ -20,6 +20,8 @@ export const ChatProvider = ({ children }) => {
   const [error, setError] = useState(null);
   const [typingUsers, setTypingUsers] = useState({});
   const [unreadCounts, setUnreadCounts] = useState({});
+  const [activeThreadParent, setActiveThreadParent] = useState(null);
+  const [threadMessages, setThreadMessages] = useState([]);
 
   // Fetch all chats when authenticated
   useEffect(() => {
@@ -238,6 +240,43 @@ export const ChatProvider = ({ children }) => {
       });
     });
 
+    socket.on('thread:messageCreated', (newMessage) => {
+      if (activeThreadParent && newMessage.parentMessageId === activeThreadParent._id) {
+        setThreadMessages((prev) => [...prev, newMessage]);
+        setMessages((prev) =>
+          prev.map((m) =>
+            m._id === newMessage.parentMessageId
+              ? { ...m, threadCount: (m.threadCount || 0) + 1 }
+              : m
+          )
+        );
+        setMessageCache((prev) => ({
+          ...prev,
+          [newMessage.chat._id]: (prev[newMessage.chat._id] || []).map((m) =>
+            m._id === newMessage.parentMessageId
+              ? { ...m, threadCount: (m.threadCount || 0) + 1 }
+              : m
+          ),
+        }));
+      } else {
+        setMessages((prev) =>
+          prev.map((m) =>
+            m._id === newMessage.parentMessageId
+              ? { ...m, threadCount: (m.threadCount || 0) + 1 }
+              : m
+          )
+        );
+        setMessageCache((prev) => ({
+          ...prev,
+          [newMessage.chat._id]: (prev[newMessage.chat._id] || []).map((m) =>
+            m._id === newMessage.parentMessageId
+              ? { ...m, threadCount: (m.threadCount || 0) + 1 }
+              : m
+          ),
+        }));
+      }
+    });
+
     return () => {
       socket.off('message-received');
       socket.off('typing');
@@ -248,8 +287,9 @@ export const ChatProvider = ({ children }) => {
       socket.off('message:deleted');
       socket.off('messages-read');
       socket.off('user-avatar-updated');
+      socket.off('thread:messageCreated');
     };
-  }, [socket, selectedChat, currentUser]);
+  }, [socket, selectedChat, currentUser, activeThreadParent]);
 
   const fetchChats = async () => {
     setChatLoading(true);
@@ -481,6 +521,59 @@ export const ChatProvider = ({ children }) => {
     }
   };
 
+  const openThread = async (message) => {
+    setActiveThreadParent(message);
+    try {
+      const data = await getThread(message._id || message.id);
+      setActiveThreadParent(data.parent);
+      setThreadMessages(data.replies);
+    } catch (err) {
+      console.error('Failed to fetch thread:', err);
+      setThreadMessages([]);
+    }
+  };
+
+  const closeThread = () => {
+    setActiveThreadParent(null);
+    setThreadMessages([]);
+  };
+
+  const sendThreadMessage = async (text) => {
+    if (!activeThreadParent) return;
+    setError(null);
+    try {
+      const msg = await sendMessage(
+        selectedChat._id,
+        text,
+        [],
+        activeThreadParent._id
+      );
+      setThreadMessages((prev) => [...prev, msg]);
+      setMessages((prev) =>
+        prev.map((m) =>
+          m._id === activeThreadParent._id
+            ? { ...m, threadCount: (m.threadCount || 0) + 1 }
+            : m
+        )
+      );
+      setMessageCache((prev) => ({
+        ...prev,
+        [selectedChat._id]: (prev[selectedChat._id] || []).map((m) =>
+          m._id === activeThreadParent._id
+            ? { ...m, threadCount: (m.threadCount || 0) + 1 }
+            : m
+        ),
+      }));
+      if (socket) {
+        socket.emit('new-thread-message', msg);
+      }
+      return msg;
+    } catch (err) {
+      console.error('Failed to send thread message:', err);
+      throw err;
+    }
+  };
+
   const markMessageAsRead = async (chatId) => {
     try {
       await markAsRead(chatId);
@@ -587,6 +680,11 @@ export const ChatProvider = ({ children }) => {
     error,
     typingUsers,
     unreadCounts,
+    activeThreadParent,
+    threadMessages,
+    openThread,
+    closeThread,
+    sendThreadMessage,
     fetchChats,
     fetchMessages,
     createOrAccessChat,
