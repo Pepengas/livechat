@@ -26,18 +26,17 @@ const ChatWindow = ({ toggleMobileMenu, openUserProfileModal, openGroupInfoModal
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef(null);
   const scrollContainerRef = useRef(null);
+  const [autoScroll, setAutoScroll] = useState(true);
 
-  // Scroll to bottom when messages change only if user is near bottom
-  useEffect(() => {
+  // Track whether user is at the bottom of the chat
+  const handleScroll = () => {
     const container = scrollContainerRef.current;
     if (!container) return;
-    const isNearBottom =
+    const atBottom =
       container.scrollHeight - container.scrollTop - container.clientHeight <
       100;
-    if (isNearBottom) {
-      scrollToBottom();
-    }
-  }, [messages]);
+    setAutoScroll(atBottom);
+  };
   
   // Fetch messages when selected chat changes
   useEffect(() => {
@@ -48,6 +47,7 @@ const ChatWindow = ({ toggleMobileMenu, openUserProfileModal, openGroupInfoModal
 
   useEffect(() => {
     scrollToBottom();
+    setAutoScroll(true);
   }, [selectedChat]);
   
   // Handle typing indicator
@@ -239,7 +239,11 @@ const ChatWindow = ({ toggleMobileMenu, openUserProfileModal, openGroupInfoModal
           </div>
           
           {/* Messages */}
-          <div ref={scrollContainerRef} className="chat-scroll">
+          <div
+            ref={scrollContainerRef}
+            className="chat-scroll"
+            onScroll={handleScroll}
+          >
             <div className="chat-column">
               {messageLoading ? (
                 <div className="flex justify-center items-center h-full">
