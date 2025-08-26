@@ -13,6 +13,7 @@ const authRoutes = require('./routes/auth.routes');
 const userRoutes = require('./routes/user.routes');
 const chatRoutes = require('./routes/chat.routes');
 const messageRoutes = require('./routes/message.routes');
+const previewRoutes = require('./routes/preview.routes');
 
 // Import socket service
 const socketService = require('./services/socket.service');
@@ -67,6 +68,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/chats', chatRoutes);
 app.use('/api/messages', messageRoutes);
+app.use('/api/link-preview', previewRoutes);
 
 // Serve React app for any other routes in production
 if (process.env.NODE_ENV === 'production') {
