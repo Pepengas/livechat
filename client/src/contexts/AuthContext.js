@@ -7,6 +7,10 @@ import {
   updateUserProfile,
   uploadAvatar as uploadAvatarApi,
 } from '../services/authService';
+import {
+  getAccessToken,
+  clearTokens,
+} from 'services/tokenService';
 
 export const AuthContext = createContext();
 
@@ -19,7 +23,7 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     // Check if user is already logged in
     const checkAuthStatus = async () => {
-      const token = localStorage.getItem('token');
+      const token = getAccessToken();
       if (!token) {
         setLoading(false);
         return;
@@ -33,7 +37,7 @@ export const AuthProvider = ({ children }) => {
       } catch (err) {
         console.error('Authentication check failed:', err);
         // Clear any invalid tokens
-        localStorage.removeItem('token');
+        clearTokens();
       } finally {
         setLoading(false);
       }
@@ -81,7 +85,7 @@ export const AuthProvider = ({ children }) => {
       // Force logout on client side even if server request fails
       setCurrentUser(null);
       setIsAuthenticated(false);
-      localStorage.removeItem('token');
+      clearTokens();
     }
   };
 

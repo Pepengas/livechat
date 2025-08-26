@@ -1,4 +1,4 @@
-import axios, { API_URL } from './apiConfig';
+import api from 'services/apiClient';
 
 /**
  * Get all users
@@ -6,7 +6,7 @@ import axios, { API_URL } from './apiConfig';
  */
 export const getAllUsers = async () => {
   try {
-    const response = await axios.get(`${API_URL}/users`);
+    const response = await api.get('/users');
     return response.data;
   } catch (error) {
     throw error.response?.data || { message: 'Failed to fetch users' };
@@ -20,7 +20,7 @@ export const getAllUsers = async () => {
  */
 export const getUserById = async (userId) => {
   try {
-    const response = await axios.get(`${API_URL}/users/${userId}`);
+    const response = await api.get(`/users/${userId}`);
     return response.data;
   } catch (error) {
     throw error.response?.data || { message: 'Failed to fetch user' };
@@ -34,7 +34,7 @@ export const getUserById = async (userId) => {
  */
 export const searchUsers = async (query) => {
   try {
-    const response = await axios.get(`${API_URL}/users/search?query=${query}`);
+    const response = await api.get(`/users/search?query=${query}`);
     return response.data;
   } catch (error) {
     throw error.response?.data || { message: 'Failed to search users' };
@@ -48,7 +48,7 @@ export const searchUsers = async (query) => {
  */
 export const updateUserStatus = async (status) => {
   try {
-    const response = await axios.put(`${API_URL}/users/status`, { status });
+    const response = await api.put('/users/status', { status });
     return response.data;
   } catch (error) {
     throw error.response?.data || { message: 'Failed to update status' };

@@ -3,7 +3,7 @@ import { getChats, accessChat, createGroupChat, renameGroup, addToGroup, removeF
 import { getMessages, sendMessage, markAsRead, deleteMessage, getThread } from '../services/messageService';
 import { AuthContext } from './AuthContext';
 import { SocketContext } from './SocketContext';
-import axios, { API_URL } from '../services/apiConfig';
+import api from 'services/apiClient';
 
 export const ChatContext = createContext();
 
@@ -721,7 +721,7 @@ export const ChatProvider = ({ children }) => {
     if (!query) return [];
     if (userSearchCache[query]) return userSearchCache[query];
     try {
-      const { data } = await axios.get(`${API_URL}/users/search?q=${encodeURIComponent(query)}`);
+      const { data } = await api.get(`/users/search?q=${encodeURIComponent(query)}`);
       setUserSearchCache((prev) => ({ ...prev, [query]: data }));
       return data;
     } catch (err) {
@@ -734,7 +734,7 @@ export const ChatProvider = ({ children }) => {
     if (!query) return [];
     if (chatSearchCache[query]) return chatSearchCache[query];
     try {
-      const { data } = await axios.get(`${API_URL}/chats/search?q=${encodeURIComponent(query)}`);
+      const { data } = await api.get(`/chats/search?q=${encodeURIComponent(query)}`);
       setChatSearchCache((prev) => ({ ...prev, [query]: data }));
       return data;
     } catch (err) {
@@ -766,7 +766,7 @@ export const ChatProvider = ({ children }) => {
       : [...existing, { emoji, userId: currentUser._id }];
     updateMessageReactions(messageId, reactions);
     try {
-      await axios.post(`${API_URL}/messages/${messageId}/reactions`, { emoji });
+      await api.post(`/messages/${messageId}/reactions`, { emoji });
     } catch (err) {
       console.error('Failed to toggle reaction:', err);
     }
