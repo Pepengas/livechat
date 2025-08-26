@@ -1,4 +1,4 @@
-import axios, { API_URL } from './apiConfig';
+import api from '@/services/apiClient';
 
 /**
  * Get all messages for a chat
@@ -7,7 +7,7 @@ import axios, { API_URL } from './apiConfig';
  */
 export const getMessages = async (chatId) => {
   try {
-    const response = await axios.get(`${API_URL}/messages/${chatId}`);
+    const response = await api.get(`/messages/${chatId}`);
     return response.data;
   } catch (error) {
     throw error.response?.data || { message: 'Failed to fetch messages' };
@@ -51,7 +51,7 @@ export const sendMessage = async (
       }
     }
 
-    const response = await axios.post(`${API_URL}/messages`, payload);
+    const response = await api.post('/messages', payload);
 
     return response.data;
   } catch (error) {
@@ -61,7 +61,7 @@ export const sendMessage = async (
 
 export const getThread = async (messageId) => {
   try {
-    const response = await axios.get(`${API_URL}/messages/${messageId}/thread`);
+    const response = await api.get(`/messages/${messageId}/thread`);
     return response.data;
   } catch (error) {
     throw error.response?.data || { message: 'Failed to fetch thread' };
@@ -75,7 +75,7 @@ export const getThread = async (messageId) => {
  */
 export const markAsRead = async (chatId) => {
   try {
-    const response = await axios.put(`${API_URL}/messages/read/${chatId}`);
+    const response = await api.put(`/messages/read/${chatId}`);
     return response.data;
   } catch (error) {
     throw error.response?.data || { message: 'Failed to mark messages as read' };
@@ -89,8 +89,8 @@ export const markAsRead = async (chatId) => {
  */
 export const deleteMessage = async (messageId, scope = 'all') => {
   try {
-    const response = await axios.delete(
-      `${API_URL}/messages/${messageId}?scope=${scope}`
+    const response = await api.delete(
+      `/messages/${messageId}?scope=${scope}`
     );
     return response.data;
   } catch (error) {
@@ -106,7 +106,7 @@ export const deleteMessage = async (messageId, scope = 'all') => {
  */
 export const searchMessages = async (chatId, query) => {
   try {
-    const response = await axios.get(`${API_URL}/messages/search/${chatId}?query=${query}`);
+    const response = await api.get(`/messages/search/${chatId}?query=${query}`);
     return response.data;
   } catch (error) {
     throw error.response?.data || { message: 'Failed to search messages' };
@@ -120,7 +120,7 @@ export const uploadAttachments = async (files) => {
       formData.append('files', file);
     });
 
-    const response = await axios.post(`${API_URL}/messages/upload`, formData, {
+    const response = await api.post('/messages/upload', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },

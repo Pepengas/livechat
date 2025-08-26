@@ -1,4 +1,4 @@
-import axios, { API_URL } from './apiConfig';
+import api from '@/services/apiClient';
 
 /**
  * Get all chats for the current user
@@ -6,7 +6,7 @@ import axios, { API_URL } from './apiConfig';
  */
 export const getChats = async () => {
   try {
-    const response = await axios.get(`${API_URL}/chats`);
+    const response = await api.get('/chats');
     return response.data;
   } catch (error) {
     throw error.response?.data || { message: 'Failed to fetch chats' };
@@ -20,7 +20,7 @@ export const getChats = async () => {
  */
 export const accessChat = async (userId) => {
   try {
-    const response = await axios.post(`${API_URL}/chats`, { userId });
+    const response = await api.post('/chats', { userId });
     return response.data;
   } catch (error) {
     throw error.response?.data || { message: 'Failed to access chat' };
@@ -36,7 +36,7 @@ export const accessChat = async (userId) => {
  */
 export const createGroupChat = async (users, name) => {
   try {
-    const response = await axios.post(`${API_URL}/chats/group`, {
+    const response = await api.post('/chats/group', {
       name,
       users,
     });
@@ -55,7 +55,7 @@ export const createGroupChat = async (users, name) => {
  */
 export const renameGroup = async (chatId, name) => {
   try {
-    const response = await axios.put(`${API_URL}/chats/group/${chatId}`, { name });
+    const response = await api.put(`/chats/group/${chatId}`, { name });
     return response.data;
   } catch (error) {
     throw error.response?.data || { message: 'Failed to rename group' };
@@ -70,7 +70,7 @@ export const renameGroup = async (chatId, name) => {
  */
 export const addToGroup = async (chatId, userId) => {
   try {
-    const response = await axios.put(`${API_URL}/chats/group/${chatId}/add`, { userId });
+    const response = await api.put(`/chats/group/${chatId}/add`, { userId });
     return response.data;
   } catch (error) {
     throw error.response?.data || { message: 'Failed to add user to group' };
@@ -85,7 +85,7 @@ export const addToGroup = async (chatId, userId) => {
  */
 export const removeFromGroup = async (chatId, userId) => {
   try {
-    const response = await axios.put(`${API_URL}/chats/group/${chatId}/remove`, { userId });
+    const response = await api.put(`/chats/group/${chatId}/remove`, { userId });
     return response.data;
   } catch (error) {
     throw error.response?.data || { message: 'Failed to remove user from group' };
@@ -99,7 +99,7 @@ export const removeFromGroup = async (chatId, userId) => {
  */
 export const leaveGroup = async (chatId) => {
   try {
-    const response = await axios.put(`${API_URL}/chats/group/${chatId}/leave`);
+    const response = await api.put(`/chats/group/${chatId}/leave`);
     return response.data;
   } catch (error) {
     throw error.response?.data || { message: 'Failed to leave group' };
@@ -118,7 +118,7 @@ export const updateGroupAvatar = async (chatId, avatar) => {
     formData.append('chatId', chatId);
     formData.append('avatar', avatar);
     
-    const response = await axios.put(`${API_URL}/chats/group/avatar`, formData, {
+    const response = await api.put('/chats/group/avatar', formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
