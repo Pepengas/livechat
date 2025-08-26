@@ -8,23 +8,52 @@ import {
 import { useChat } from '../../hooks/useChat';
 import linkify from '../../utils/linkify';
 import ReactionBar from './ReactionBar';
+import ReactionChips from './ReactionChips';
 
-const MessageItem = React.forwardRef(
-  ({ message, isOwn, onDelete, onReply, scrollToMessage }, ref) => {
-    const { openThread, currentUser, toggleReaction } = useChat();
-    const barRef = React.useRef();
-    const isTouch = typeof window !== 'undefined' && 'ontouchstart' in window;
-    const text = message.text || message.content;
-    const [swipeX, setSwipeX] = React.useState(0);
-    const touchStart = React.useRef(0);
+const MessageItem = ({ message, isOwn, onDelete }) => {
+  const { openThread, currentUser, toggleReaction } = useChat();
+  const isTouch = typeof window !== 'undefined' && 'ontouchstart' in window;
+  const text = message.text || message.content;
+  const [showBar, setShowBar] = React.useState(false);
+  const hoverTimeout = React.useRef();
+  const pressTimeout = React.useRef();
 
-    const handleKeyDown = (e) => {
-      if (e.key === ':') {
-        e.preventDefault();
-        barRef.current?.openPicker();
-      }
-    };
+  const openBar = () => setShowBar(true);
+  const closeBar = () => setShowBar(false);
 
+  const handleKeyDown = (e) => {
+    if (e.key.toLowerCase() === 'r') {
+      e.preventDefault();
+      openBar();
+    } else if (e.key === 'Escape') {
+      closeBar();
+    }
+  };
+
+  const handleMouseEnter = () => {
+    if (!isTouch) {
+      hoverTimeout.current = setTimeout(openBar, 80);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    if (!isTouch) {
+      clearTimeout(hoverTimeout.current);
+      closeBar();
+    }
+  };
+
+  const handlePointerDown = () => {
+    if (isTouch) {
+      pressTimeout.current = setTimeout(openBar, 350);
+    }
+  };
+
+  const handlePointerUp = () => {
+    if (isTouch) {
+      clearTimeout(pressTimeout.current);
+    }
+  };
     const handleCopy = () => {
       if (text) {
         navigator.clipboard?.writeText(text);
@@ -78,32 +107,20 @@ const MessageItem = React.forwardRef(
       );
     };
     return (
-      <div
-        ref={ref}
-        className="relative group"
-        tabIndex={0}
-        onKeyDown={handleKeyDown}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-        style={{ transform: `translateX(${swipeX}px)` }}
-      >
-        {message.replyToSnapshot && (
-          <div
-            onClick={() => scrollToMessage && scrollToMessage(message.replyToId)}
-            className="mb-1 p-2 rounded bg-gray-200 dark:bg-gray-600 text-sm cursor-pointer"
-          >
-            <div className="text-xs text-gray-500">
-              {message.replyToSnapshot.senderName}
-            </div>
-            <div className="truncate">{message.replyToSnapshot.text}</div>
-          </div>
-        )}
-        {text && (
-          <div className="text-[15px] leading-6 whitespace-pre-wrap break-words">
-            {linkify(text)}
-          </div>
-        )}
+    <div
+      className="relative group"
+      tabIndex={0}
+      onKeyDown={handleKeyDown}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      onPointerDown={handlePointerDown}
+      onPointerUp={handlePointerUp}
+    >
+      {text && (
+        <div className="text-[15px] leading-6 whitespace-pre-wrap break-words">
+          {linkify(text)}
+        </div>
+      )}
         {message.attachments &&
           message.attachments.map((att) => (
             <div key={att.id || att.url}>{renderAttachment(att)}</div>

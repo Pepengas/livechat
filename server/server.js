@@ -92,6 +92,9 @@ const io = socketIo(server, {
   },
 });
 
+// Make io accessible in routes
+app.set('io', io);
+
 // Initialize socket service
 socketService(io);
 
