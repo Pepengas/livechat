@@ -6,9 +6,37 @@ import {
   ArrowUturnRightIcon,
 } from '@heroicons/react/24/outline';
 import { useChat } from '../../hooks/useChat';
-import linkify from '../../utils/linkify';
+import linkify, { extractUrls } from '../../utils/linkify';
+import LinkPreviewCard from './LinkPreviewCard';
 import ReactionBar from './ReactionBar';
 import ReactionChips from './ReactionChips';
+
+const previewCache = {};
+
+const fetchLinkPreview = async (url) => {
+  try {
+    const res = await fetch(`/api/link-preview?url=${encodeURIComponent(url)}`);
+    if (res.ok) {
+      const data = await res.json();
+      return data;
+    }
+  } catch (e) {
+    // ignore
+  }
+  return new Promise((resolve) =>
+    setTimeout(
+      () =>
+        resolve({
+          url,
+          title: url,
+          description: 'Preview not available',
+          image: '',
+          siteName: new URL(url).hostname,
+        }),
+      300,
+    ),
+  );
+};
 
 const MessageItem = ({ message, isOwn, onDelete, onReply }) => {
   const { openThread, currentUser, toggleReaction } = useChat();
@@ -17,6 +45,32 @@ const MessageItem = ({ message, isOwn, onDelete, onReply }) => {
   const [showBar, setShowBar] = React.useState(false);
   const hoverTimeout = React.useRef();
   const pressTimeout = React.useRef();
+  const urls = React.useMemo(() => extractUrls(text), [text]);
+  const firstUrl = urls[0];
+  const [preview, setPreview] = React.useState(null);
+  const [loadingPreview, setLoadingPreview] = React.useState(false);
+
+  React.useEffect(() => {
+    let active = true;
+    if (!firstUrl) return undefined;
+    if (previewCache[firstUrl]) {
+      setPreview(previewCache[firstUrl]);
+      return undefined;
+    }
+    setLoadingPreview(true);
+    fetchLinkPreview(firstUrl)
+      .then((data) => {
+        if (!active) return;
+        previewCache[firstUrl] = data;
+        setPreview(data);
+      })
+      .finally(() => {
+        if (active) setLoadingPreview(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [firstUrl]);
 
   const openBar = () => setShowBar(true);
   const closeBar = () => setShowBar(false);
@@ -104,6 +158,10 @@ const MessageItem = ({ message, isOwn, onDelete, onReply }) => {
         <div className="text-[15px] leading-6 whitespace-pre-wrap break-words">
           {linkify(text)}
         </div>
+      )}
+
+      {firstUrl && (
+        <LinkPreviewCard preview={preview} isLoading={loadingPreview} />
       )}
 
       {message.attachments &&
