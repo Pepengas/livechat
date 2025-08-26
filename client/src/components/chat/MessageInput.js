@@ -3,16 +3,93 @@ import { useChat } from '../../hooks/useChat';
 import { useSocket } from '../../hooks/useSocket';
 import { useDebounce } from '../../hooks/useDebounce';
 import { uploadAttachments } from '../../services/messageService';
+import AutocompletePopover from '../common/AutocompletePopover';
 
-const MessageInput = ({ chatId, onTyping }) => {
+const MessageInput = ({ chatId, onTyping, onInsertMention }) => {
   const [message, setMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [attachments, setAttachments] = useState([]);
   const [previewAttachments, setPreviewAttachments] = useState([]);
   const fileInputRef = useRef(null);
-  const { sendNewMessage, replyTo, cancelReply, messages, currentUser, startReply } = useChat();
+  const inputRef = useRef(null);
+  const { sendNewMessage, replyTo, cancelReply, messages, currentUser, startReply, searchUsers, searchChats } = useChat();
   const { socket } = useSocket();
   const debouncedTyping = useDebounce(isTyping, 1000);
+  const [mention, setMention] = useState(null); // {trigger, start, query}
+  const [suggestions, setSuggestions] = useState([]);
+  const [anchorRect, setAnchorRect] = useState(null);
+  const debouncedMentionQuery = useDebounce(mention ? mention.query : '', 300);
+
+  const getCaretCoordinates = () => {
+    const input = inputRef.current;
+    if (!input) return { left: 0, top: 0, bottom: 0 };
+    const pos = input.selectionStart;
+    const style = window.getComputedStyle(input);
+    const font = `${style.fontSize} ${style.fontFamily}`;
+    const canvas = getCaretCoordinates.canvas || (getCaretCoordinates.canvas = document.createElement('canvas'));
+    const ctx = canvas.getContext('2d');
+    ctx.font = font;
+    const text = input.value.slice(0, pos).replace(/\s/g, '\u00a0');
+    const width = ctx.measureText(text).width;
+    return {
+      left: input.offsetLeft + width,
+      top: input.offsetTop,
+      bottom: input.offsetTop + input.offsetHeight
+    };
+  };
+
+  const detectMention = (value, caret) => {
+    const pre = value.slice(0, caret);
+    const word = pre.split(/\s/).pop();
+    if (word && (word.startsWith('@') || word.startsWith('#'))) {
+      const trigger = word[0];
+      const query = word.slice(1);
+      const start = caret - word.length;
+      setMention({ trigger, start, query });
+      setAnchorRect(getCaretCoordinates());
+    } else {
+      setMention(null);
+      setSuggestions([]);
+    }
+  };
+
+  useEffect(() => {
+    if (!mention || !mention.query) return;
+    const fetch = async () => {
+      const fn = mention.trigger === '@' ? searchUsers : searchChats;
+      const results = await fn(mention.query);
+      setSuggestions(results);
+      setAnchorRect(getCaretCoordinates());
+    };
+    fetch();
+  }, [debouncedMentionQuery, mention?.trigger, searchUsers, searchChats]);
+
+  const handleCaretChange = () => {
+    const input = inputRef.current;
+    if (!input) return;
+    detectMention(input.value, input.selectionStart);
+  };
+
+  const insertMention = (item) => {
+    if (!mention) return;
+    const token = mention.trigger === '@' ? `@${item.name}` : `#${item.name}`;
+    const before = message.slice(0, mention.start);
+    const after = message.slice(mention.start + mention.query.length + 1);
+    const newMessage = `${before}${token} ${after}`;
+    setMessage(newMessage);
+    const pos = before.length + token.length + 1;
+    setTimeout(() => {
+      if (inputRef.current) {
+        inputRef.current.focus();
+        inputRef.current.setSelectionRange(pos, pos);
+      }
+    }, 0);
+    if (onInsertMention) {
+      onInsertMention({ type: mention.trigger === '@' ? 'user' : 'chat', item });
+    }
+    setMention(null);
+    setSuggestions([]);
+  };
 
   // Handle typing indicator
   useEffect(() => {
@@ -31,6 +108,7 @@ const MessageInput = ({ chatId, onTyping }) => {
   // Handle message input change
   const handleInputChange = (e) => {
     setMessage(e.target.value);
+    detectMention(e.target.value, e.target.selectionStart);
     if (!isTyping) {
       setIsTyping(true);
       if (onTyping) onTyping();
@@ -137,6 +215,16 @@ const MessageInput = ({ chatId, onTyping }) => {
   };
 
   const onKeyDown = (e) => {
+    if (mention) {
+      if (['ArrowDown', 'ArrowUp', 'Enter'].includes(e.key)) {
+        e.preventDefault();
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        setMention(null);
+        setSuggestions([]);
+      }
+      return;
+    }
     if (e.altKey && e.key === 'ArrowUp') {
       e.preventDefault();
       const last = [...messages].reverse().find(m => m.sender._id !== currentUser._id);
@@ -188,7 +276,7 @@ const MessageInput = ({ chatId, onTyping }) => {
   };
 
   return (
-    <div className="py-3">
+    <div className="py-3 relative">
       {replyTo && (
         <div className="mb-2 flex items-center justify-between bg-gray-200 dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-md px-3 py-2">
           <div className="overflow-hidden">
@@ -252,9 +340,12 @@ const MessageInput = ({ chatId, onTyping }) => {
         
         <input
           type="text"
+          ref={inputRef}
           value={message}
           onChange={handleInputChange}
           onKeyDown={onKeyDown}
+          onKeyUp={handleCaretChange}
+          onClick={handleCaretChange}
           placeholder="Message"
           className="flex-1 px-3 py-2 rounded-md bg-white dark:bg-gray-800 dark:text-gray-100 border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-primary-500"
         />
@@ -270,6 +361,19 @@ const MessageInput = ({ chatId, onTyping }) => {
           </svg>
         </button>
       </form>
+      {mention && suggestions.length > 0 && anchorRect && (
+        <AutocompletePopover
+          items={suggestions}
+          anchorRect={anchorRect}
+          onSelect={insertMention}
+          onClose={() => {
+            setMention(null);
+            setSuggestions([]);
+          }}
+          query={mention.query}
+          trigger={mention.trigger}
+        />
+      )}
     </div>
   );
 };
