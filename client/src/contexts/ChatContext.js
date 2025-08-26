@@ -24,6 +24,8 @@ export const ChatProvider = ({ children }) => {
   const [activeThreadParent, setActiveThreadParent] = useState(null);
   const [threadMessages, setThreadMessages] = useState([]);
   const [replyTo, setReplyTo] = useState(null);
+  const [userSearchCache, setUserSearchCache] = useState({});
+  const [chatSearchCache, setChatSearchCache] = useState({});
 
   const updateMessageReactions = (messageId, reactions) => {
     setMessages((prev) => prev.map((m) => (m._id === messageId ? { ...m, reactions } : m)));
@@ -693,6 +695,32 @@ export const ChatProvider = ({ children }) => {
     }
   };
 
+  const searchUsersCached = async (query) => {
+    if (!query) return [];
+    if (userSearchCache[query]) return userSearchCache[query];
+    try {
+      const { data } = await axios.get(`${API_URL}/users/search?q=${encodeURIComponent(query)}`);
+      setUserSearchCache((prev) => ({ ...prev, [query]: data }));
+      return data;
+    } catch (err) {
+      console.error('Failed to search users:', err);
+      return [];
+    }
+  };
+
+  const searchChatsCached = async (query) => {
+    if (!query) return [];
+    if (chatSearchCache[query]) return chatSearchCache[query];
+    try {
+      const { data } = await axios.get(`${API_URL}/chats/search?q=${encodeURIComponent(query)}`);
+      setChatSearchCache((prev) => ({ ...prev, [query]: data }));
+      return data;
+    } catch (err) {
+      console.error('Failed to search chats:', err);
+      return [];
+    }
+  };
+
   const toggleReaction = async (messageId, emoji) => {
     let target = messages.find((m) => m._id === messageId);
     if (!target) {
@@ -773,7 +801,9 @@ export const ChatProvider = ({ children }) => {
     getTotalUnreadCount,
     currentUser,
     startReply,
-    cancelReply
+    cancelReply,
+    searchUsers: searchUsersCached,
+    searchChats: searchChatsCached
   };
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;
