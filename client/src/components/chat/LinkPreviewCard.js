@@ -1,8 +1,9 @@
 import React from 'react';
+import { PhotoIcon } from '@heroicons/react/24/outline';
 
 const PlaceholderImage = () => (
-  <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-500 text-sm">
-    No image
+  <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-400">
+    <PhotoIcon className="w-8 h-8" />
   </div>
 );
 
