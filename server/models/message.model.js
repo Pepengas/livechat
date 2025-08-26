@@ -21,6 +21,15 @@ const messageSchema = new mongoose.Schema(
       ref: 'Message',
       default: null
     },
+    replyToId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Message',
+      default: null
+    },
+    replyToSnapshot: {
+      senderName: { type: String },
+      text: { type: String }
+    },
     threadCount: {
       type: Number,
       default: 0

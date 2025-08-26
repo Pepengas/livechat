@@ -23,6 +23,7 @@ export const ChatProvider = ({ children }) => {
   const [unreadCounts, setUnreadCounts] = useState({});
   const [activeThreadParent, setActiveThreadParent] = useState(null);
   const [threadMessages, setThreadMessages] = useState([]);
+  const [replyTo, setReplyTo] = useState(null);
 
   const updateMessageReactions = (messageId, reactions) => {
     setMessages((prev) => prev.map((m) => (m._id === messageId ? { ...m, reactions } : m)));
@@ -37,6 +38,14 @@ export const ChatProvider = ({ children }) => {
     if (activeThreadParent && activeThreadParent._id === messageId) {
       setActiveThreadParent((prev) => ({ ...prev, reactions }));
     }
+  };
+
+  const startReply = (message) => {
+    setReplyTo(message);
+  };
+
+  const cancelReply = () => {
+    setReplyTo(null);
   };
 
   // Fetch all chats when authenticated
@@ -506,10 +515,19 @@ export const ChatProvider = ({ children }) => {
     }
   };
 
-  const sendNewMessage = async (chatId, content, attachments = []) => {
+  const sendNewMessage = async (chatId, content, attachments = [], reply) => {
     setError(null);
     try {
-      const data = await sendMessage(chatId, content, attachments);
+      const replyData = reply
+        ? {
+            id: reply._id || reply.id,
+            snapshot: {
+              senderName: reply.sender?.name || 'Unknown',
+              text: reply.content || reply.text || '',
+            },
+          }
+        : undefined;
+      const data = await sendMessage(chatId, content, attachments, undefined, replyData);
 
       if (socket) {
         socket.emit('new-message', data);
@@ -535,6 +553,7 @@ export const ChatProvider = ({ children }) => {
         return [updatedChat, ...filteredChats];
       });
       
+      setReplyTo(null);
       return data;
     } catch (err) {
       setError(err.message || 'Failed to send message');
@@ -732,6 +751,7 @@ export const ChatProvider = ({ children }) => {
     unreadCounts,
     activeThreadParent,
     threadMessages,
+    replyTo,
     openThread,
     closeThread,
     sendThreadMessage,
@@ -751,7 +771,9 @@ export const ChatProvider = ({ children }) => {
     startTyping,
     stopTyping,
     getTotalUnreadCount,
-    currentUser
+    currentUser,
+    startReply,
+    cancelReply
   };
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;
