@@ -5,17 +5,13 @@ import DateDivider from './DateDivider';
 import MessageGroup from './MessageGroup';
 import DeleteMessageModal from '../modals/DeleteMessageModal';
 import ThreadPanel from './ThreadPanel';
+import UnreadDivider from './UnreadDivider';
+import useStickyScroll from '../../hooks/useStickyScroll';
 
 const MessageList = ({ messages, currentUser, selectedChat }) => {
-  const { deleteMessageById, startReply } = useChat();
+  const { deleteMessageById, startReply, markMessageAsRead } = useChat();
   const [messageToDelete, setMessageToDelete] = useState(null);
   const messageRefs = useRef({});
-
-  const registerMessageRef = (id) => (el) => {
-    if (el) {
-      messageRefs.current[id] = el;
-    }
-  };
 
   const scrollToMessage = (id) => {
     const el = messageRefs.current[id];
@@ -25,6 +21,34 @@ const MessageList = ({ messages, currentUser, selectedChat }) => {
       setTimeout(() => {
         el.classList.remove('ring-2', 'ring-blue-400');
       }, 2000);
+    }
+  };
+
+  const firstUnreadId = useMemo(() => {
+    const lastReadAt = selectedChat?.lastReadAt
+      ? new Date(selectedChat.lastReadAt)
+      : null;
+    if (!lastReadAt) return null;
+    const first = messages.find((m) => new Date(m.createdAt) > lastReadAt);
+    return first ? first._id : null;
+  }, [messages, selectedChat]);
+
+  const {
+    listRef,
+    dividerRef,
+    bottomRef,
+    showUnreadButton,
+    jumpToUnread,
+  } = useStickyScroll({
+    firstUnreadId,
+    scrollToMessage,
+    onReachedLatest: () =>
+      selectedChat && markMessageAsRead(selectedChat._id),
+  });
+
+  const registerMessageRef = (id) => (el) => {
+    if (el) {
+      messageRefs.current[id] = el;
     }
   };
 
@@ -63,11 +87,48 @@ const MessageList = ({ messages, currentUser, selectedChat }) => {
   let lastDate = null;
   let lastMessageDate = null;
   return (
-    <div className="space-y-2">
+    <div ref={listRef} className="space-y-2 relative">
       {groups.map((group) => {
         const dateStr = group.startAt.toDateString();
         const showDivider = lastDate !== dateStr;
         lastDate = dateStr;
+        const containsUnread =
+          firstUnreadId && group.items.some((m) => m._id === firstUnreadId);
+
+        if (containsUnread) {
+          const index = group.items.findIndex((m) => m._id === firstUnreadId);
+          const before = group.items.slice(0, index);
+          const after = group.items.slice(index);
+          const lastItem = after[after.length - 1];
+          lastMessageDate = new Date(lastItem.createdAt);
+          return (
+            <React.Fragment key={group.key}>
+              {showDivider && <DateDivider date={group.startAt} />}
+              {before.length > 0 && (
+                <MessageGroup
+                  group={{ ...group, items: before }}
+                  currentUser={currentUser}
+                  onDelete={handleDeleteRequest}
+                  prevMessageDate={lastMessageDate}
+                  registerMessageRef={registerMessageRef}
+                  onReply={handleReply}
+                  scrollToMessage={scrollToMessage}
+                />
+              )}
+              <UnreadDivider ref={dividerRef} />
+              <MessageGroup
+                group={{ ...group, items: after }}
+                currentUser={currentUser}
+                onDelete={handleDeleteRequest}
+                prevMessageDate={lastMessageDate}
+                registerMessageRef={registerMessageRef}
+                onReply={handleReply}
+                scrollToMessage={scrollToMessage}
+              />
+            </React.Fragment>
+          );
+        }
+
         const element = (
           <React.Fragment key={group.key}>
             {showDivider && <DateDivider date={group.startAt} />}
@@ -95,6 +156,15 @@ const MessageList = ({ messages, currentUser, selectedChat }) => {
         />
       )}
       <ThreadPanel />
+      <div ref={bottomRef} />
+      {showUnreadButton && (
+        <button
+          onClick={jumpToUnread}
+          className="fixed right-4 bottom-24 md:bottom-6 px-4 py-2 rounded-full bg-primary-600 text-white shadow-lg"
+        >
+          Jump to last unread
+        </button>
+      )}
     </div>
   );
 };

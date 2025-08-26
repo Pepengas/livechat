@@ -21,6 +21,7 @@ export const ChatProvider = ({ children }) => {
   const [error, setError] = useState(null);
   const [typingUsers, setTypingUsers] = useState({});
   const [unreadCounts, setUnreadCounts] = useState({});
+  const [lastReadAtMap, setLastReadAtMap] = useState({});
   const [activeThreadParent, setActiveThreadParent] = useState(null);
   const [threadMessages, setThreadMessages] = useState([]);
   const [replyTo, setReplyTo] = useState(null);
@@ -83,8 +84,6 @@ export const ChatProvider = ({ children }) => {
       // Update messages if in the same chat
       if (selectedChat && selectedChat._id === newMessage.chat._id) {
         setMessages((prevMessages) => [...prevMessages, newMessage]);
-        // Mark as read immediately if we're in this chat
-        markMessageAsRead(newMessage.chat._id);
       } else {
         // Update unread count for this chat
         setUnreadCounts((prev) => ({
@@ -328,13 +327,16 @@ export const ChatProvider = ({ children }) => {
     setError(null);
     try {
       const data = await getChats();
-      setChats(data);
+      setChats(data.map(chat => ({
+        ...chat,
+        lastReadAt: lastReadAtMap[chat._id] || chat.lastReadAt || null,
+      })));
       
       // Initialize unread counts
       const counts = {};
       data.forEach(chat => {
-        const unreadMessages = chat.latestMessage && 
-          chat.latestMessage.sender._id !== currentUser._id && 
+        const unreadMessages = chat.latestMessage &&
+          chat.latestMessage.sender._id !== currentUser._id &&
           !chat.latestMessage.readBy.includes(currentUser._id) ? 1 : 0;
         counts[chat._id] = unreadMessages;
       });
@@ -359,8 +361,19 @@ export const ChatProvider = ({ children }) => {
       const data = await getMessages(chatId);
       setMessages(data);
       setMessageCache((prev) => ({ ...prev, [chatId]: data }));
-      // Mark messages as read when fetched
-      markMessageAsRead(chatId);
+      const lastReadMsg = [...data]
+        .reverse()
+        .find((m) => m.readBy.includes(currentUser._id));
+      const lastReadAt = lastReadMsg
+        ? new Date(lastReadMsg.createdAt)
+        : new Date(0);
+      setLastReadAtMap((prev) => ({ ...prev, [chatId]: lastReadAt }));
+      setSelectedChat((prev) =>
+        prev && prev._id === chatId ? { ...prev, lastReadAt } : prev
+      );
+      setChats((prev) =>
+        prev.map((c) => (c._id === chatId ? { ...c, lastReadAt } : c))
+      );
       return data;
     } catch (err) {
       setError(err.message || 'Failed to fetch messages');
@@ -619,13 +632,22 @@ export const ChatProvider = ({ children }) => {
   const markMessageAsRead = async (chatId) => {
     try {
       await markAsRead(chatId);
-      
+
       // Clear unread count for this chat
       setUnreadCounts(prev => ({
         ...prev,
         [chatId]: 0
       }));
-      
+
+      const now = new Date();
+      setLastReadAtMap(prev => ({ ...prev, [chatId]: now }));
+      setSelectedChat(prev =>
+        prev && prev._id === chatId ? { ...prev, lastReadAt: now } : prev
+      );
+      setChats(prev =>
+        prev.map(c => (c._id === chatId ? { ...c, lastReadAt: now } : c))
+      );
+
       // Update read status in messages
       if (selectedChat && selectedChat._id === chatId) {
         setMessages(prevMessages => {
