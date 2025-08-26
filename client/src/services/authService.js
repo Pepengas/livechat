@@ -1,8 +1,8 @@
-import api from '@/services/apiClient';
+import api from 'services/apiClient';
 import {
   setTokens,
   clearTokens,
-} from '@/services/tokenService';
+} from 'services/tokenService';
 
 /**
  * Register a new user

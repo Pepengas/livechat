@@ -10,7 +10,7 @@ import {
 import {
   getAccessToken,
   clearTokens,
-} from '@/services/tokenService';
+} from 'services/tokenService';
 
 export const AuthContext = createContext();
 

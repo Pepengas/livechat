@@ -1,4 +1,4 @@
-import api from '@/services/apiClient';
+import api from 'services/apiClient';
 
 /**
  * Get all chats for the current user

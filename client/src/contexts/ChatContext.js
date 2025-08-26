@@ -3,7 +3,8 @@ import { getChats, accessChat, createGroupChat, renameGroup, addToGroup, removeF
 import { getMessages, sendMessage, markAsRead, deleteMessage, getThread } from '../services/messageService';
 import { AuthContext } from './AuthContext';
 import { SocketContext } from './SocketContext';
-import api from '@/services/apiClient';
+import api from 'services/apiClient';
+
 
 export const ChatContext = createContext();
 
