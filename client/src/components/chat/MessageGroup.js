@@ -12,7 +12,15 @@ const avatarUrl = (sender) => {
   );
 };
 
-const MessageGroup = ({ group, currentUser, onDelete, prevMessageDate }) => {
+const MessageGroup = ({
+  group,
+  currentUser,
+  onDelete,
+  prevMessageDate,
+  registerMessageRef,
+  onReply,
+  scrollToMessage,
+}) => {
   if (!group.sender) {
     // system messages
     let last = prevMessageDate ? new Date(prevMessageDate) : null;
@@ -73,7 +81,14 @@ const MessageGroup = ({ group, currentUser, onDelete, prevMessageDate }) => {
               <span className="font-medium text-sm">{group.sender.name}</span>
               <time className="text-xs text-gray-500" title={fullTime}>{shortTime}</time>
             </div>
-            <MessageItem message={m} isOwn={isOwn} onDelete={onDelete} />
+            <MessageItem
+              ref={registerMessageRef(m._id || m.id)}
+              message={m}
+              isOwn={isOwn}
+              onDelete={onDelete}
+              onReply={() => onReply(m)}
+              scrollToMessage={scrollToMessage}
+            />
           </div>
         </div>
       );
@@ -84,7 +99,14 @@ const MessageGroup = ({ group, currentUser, onDelete, prevMessageDate }) => {
           className="message-row grid grid-cols-[48px_1fr] gap-3 mt-1"
         >
           <div className="avatar-spacer" />
-          <MessageItem message={m} isOwn={isOwn} onDelete={onDelete} />
+          <MessageItem
+            ref={registerMessageRef(m._id || m.id)}
+            message={m}
+            isOwn={isOwn}
+            onDelete={onDelete}
+            onReply={() => onReply(m)}
+            scrollToMessage={scrollToMessage}
+          />
         </div>
       );
     }

@@ -16,7 +16,14 @@ const {
  */
 const sendMessage = async (req, res) => {
   try {
-    const { content, chatId, attachments = [], parentMessageId } = req.body;
+    const {
+      content,
+      chatId,
+      attachments = [],
+      parentMessageId,
+      replyToId,
+      replyToSnapshot,
+    } = req.body;
 
     if (!content && (!attachments || attachments.length === 0)) {
       return res.status(400).json({ message: 'Message content or attachments are required' });
@@ -40,6 +47,12 @@ const sendMessage = async (req, res) => {
 
     if (parentMessageId) {
       newMessage.parentMessage = parentMessageId;
+    }
+    if (replyToId) {
+      newMessage.replyToId = replyToId;
+    }
+    if (replyToSnapshot) {
+      newMessage.replyToSnapshot = replyToSnapshot;
     }
 
     // Save the message
