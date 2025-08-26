@@ -21,7 +21,13 @@ export const getMessages = async (chatId) => {
  * @param {Array} attachments - Optional array of attachment files
  * @returns {Promise<Object>} Created message
  */
-export const sendMessage = async (chatId, content, attachments = [], parentMessageId) => {
+export const sendMessage = async (
+  chatId,
+  content,
+  attachments = [],
+  parentMessageId,
+  reply
+) => {
   try {
     const payload = { chatId };
 
@@ -35,6 +41,14 @@ export const sendMessage = async (chatId, content, attachments = [], parentMessa
 
     if (parentMessageId) {
       payload.parentMessageId = parentMessageId;
+    }
+    if (reply) {
+      if (reply.id) {
+        payload.replyToId = reply.id;
+      }
+      if (reply.snapshot) {
+        payload.replyToSnapshot = reply.snapshot;
+      }
     }
 
     const response = await axios.post(`${API_URL}/messages`, payload);

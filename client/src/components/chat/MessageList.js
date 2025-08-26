@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useRef } from 'react';
 import { useChat } from '../../hooks/useChat';
 import groupMessages from '../../utils/groupMessages';
 import DateDivider from './DateDivider';
@@ -7,8 +7,30 @@ import DeleteMessageModal from '../modals/DeleteMessageModal';
 import ThreadPanel from './ThreadPanel';
 
 const MessageList = ({ messages, currentUser, selectedChat }) => {
-  const { deleteMessageById } = useChat();
+  const { deleteMessageById, startReply } = useChat();
   const [messageToDelete, setMessageToDelete] = useState(null);
+  const messageRefs = useRef({});
+
+  const registerMessageRef = (id) => (el) => {
+    if (el) {
+      messageRefs.current[id] = el;
+    }
+  };
+
+  const scrollToMessage = (id) => {
+    const el = messageRefs.current[id];
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.classList.add('ring-2', 'ring-blue-400');
+      setTimeout(() => {
+        el.classList.remove('ring-2', 'ring-blue-400');
+      }, 2000);
+    }
+  };
+
+  const handleReply = (message) => {
+    startReply(message);
+  };
 
   const groups = useMemo(() => groupMessages(messages), [messages]);
 
@@ -54,6 +76,9 @@ const MessageList = ({ messages, currentUser, selectedChat }) => {
               currentUser={currentUser}
               onDelete={handleDeleteRequest}
               prevMessageDate={lastMessageDate}
+              registerMessageRef={registerMessageRef}
+              onReply={handleReply}
+              scrollToMessage={scrollToMessage}
             />
           </React.Fragment>
         );

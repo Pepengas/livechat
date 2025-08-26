@@ -10,7 +10,7 @@ const MessageInput = ({ chatId, onTyping }) => {
   const [attachments, setAttachments] = useState([]);
   const [previewAttachments, setPreviewAttachments] = useState([]);
   const fileInputRef = useRef(null);
-  const { sendNewMessage } = useChat();
+  const { sendNewMessage, replyTo, cancelReply, messages, currentUser, startReply } = useChat();
   const { socket } = useSocket();
   const debouncedTyping = useDebounce(isTyping, 1000);
 
@@ -124,7 +124,7 @@ const MessageInput = ({ chatId, onTyping }) => {
         uploaded = await uploadAttachments(files);
       }
 
-      await sendNewMessage(chatId, message, uploaded);
+      await sendNewMessage(chatId, message, uploaded, replyTo);
       
       // Reset state
       setMessage('');
@@ -137,7 +137,13 @@ const MessageInput = ({ chatId, onTyping }) => {
   };
 
   const onKeyDown = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.altKey && e.key === 'ArrowUp') {
+      e.preventDefault();
+      const last = [...messages].reverse().find(m => m.sender._id !== currentUser._id);
+      if (last) {
+        startReply(last);
+      }
+    } else if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSubmit(e);
     }
@@ -183,6 +189,21 @@ const MessageInput = ({ chatId, onTyping }) => {
 
   return (
     <div className="py-3">
+      {replyTo && (
+        <div className="mb-2 flex items-center justify-between bg-gray-200 dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-md px-3 py-2">
+          <div className="overflow-hidden">
+            <div className="text-xs text-gray-500">
+              {replyTo.sender?.name || 'Unknown'}
+            </div>
+            <div className="text-sm truncate max-w-xs">
+              {replyTo.content || replyTo.text || ''}
+            </div>
+          </div>
+          <button onClick={cancelReply} className="ml-2 text-gray-600">
+            &times;
+          </button>
+        </div>
+      )}
       {/* Attachment previews */}
       {attachments.length > 0 && (
         <div className="flex flex-wrap gap-2 mb-3">
