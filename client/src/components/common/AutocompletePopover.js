@@ -38,6 +38,16 @@ const AutocompletePopover = ({ items, anchorRect, onSelect, onClose, query = '',
     return () => document.removeEventListener('mousedown', handleClick);
   }, [onClose]);
 
+  useEffect(() => {
+    const handleClick = (e) => {
+      if (popoverRef.current && !popoverRef.current.contains(e.target)) {
+        onClose();
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [onClose]);
+
   const [position, setPosition] = useState({ top: 0, left: 0 });
 
   useLayoutEffect(() => {
