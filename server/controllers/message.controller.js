@@ -1,6 +1,7 @@
 const Message = require('../models/message.model');
 const User = require('../models/user.model');
 const Chat = require('../models/chat.model');
+const Reaction = require('../models/reaction.model');
 const path = require('path');
 const {
   isValidFileType,
@@ -59,6 +60,7 @@ const sendMessage = async (req, res) => {
     if (parentMessageId) {
       messageObj.parentMessageId = parentMessageId;
     }
+    messageObj.reactions = [];
 
     res.status(201).json(messageObj);
   } catch (error) {
@@ -89,7 +91,7 @@ const getMessages = async (req, res) => {
     }
 
     // Get messages for the chat excluding ones deleted for this user or everyone
-    const messages = await Message.find({
+    const messagesDocs = await Message.find({
         chat: chatId,
         parentMessage: null,
         deletedForEveryone: { $ne: true },
@@ -98,6 +100,20 @@ const getMessages = async (req, res) => {
       .populate('sender', 'name email avatar')
       .populate('readBy', 'name email avatar')
       .sort({ createdAt: 1 });
+
+    const ids = messagesDocs.map((m) => m._id);
+    const reactions = await Reaction.find({ message: { $in: ids } });
+    const reactionMap = {};
+    reactions.forEach((r) => {
+      const key = r.message.toString();
+      if (!reactionMap[key]) reactionMap[key] = [];
+      reactionMap[key].push({ emoji: r.emoji, userId: r.user.toString() });
+    });
+
+    const messages = messagesDocs.map((m) => ({
+      ...m.toObject(),
+      reactions: reactionMap[m._id.toString()] || [],
+    }));
 
     res.json(messages);
   } catch (error) {
@@ -137,11 +153,79 @@ const getThread = async (req, res) => {
       .populate('readBy', 'name email avatar')
       .sort({ createdAt: 1 });
 
-    const replies = repliesDocs.map((m) => ({ ...m.toObject(), parentMessageId: id }));
+    const ids = [parent._id, ...repliesDocs.map((m) => m._id)];
+    const reactions = await Reaction.find({ message: { $in: ids } });
+    const map = {};
+    reactions.forEach((r) => {
+      const key = r.message.toString();
+      if (!map[key]) map[key] = [];
+      map[key].push({ emoji: r.emoji, userId: r.user.toString() });
+    });
 
-    res.json({ parent, replies });
+    const replies = repliesDocs.map((m) => ({
+      ...m.toObject(),
+      reactions: map[m._id.toString()] || [],
+      parentMessageId: id,
+    }));
+    const parentWithReactions = {
+      ...parent.toObject(),
+      reactions: map[parent._id.toString()] || [],
+    };
+
+    res.json({ parent: parentWithReactions, replies });
   } catch (error) {
     console.error('Get thread error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+/**
+ * @desc    Toggle a reaction on a message
+ * @route   POST /api/messages/:id/reactions
+ * @access  Private
+ */
+const toggleReaction = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { emoji } = req.body;
+    if (!emoji) {
+      return res.status(400).json({ message: 'Emoji is required' });
+    }
+
+    const message = await Message.findById(id);
+    if (!message) {
+      return res.status(404).json({ message: 'Message not found' });
+    }
+
+    const existing = await Reaction.findOne({
+      message: id,
+      user: req.user._id,
+      emoji,
+    });
+
+    if (existing) {
+      await existing.deleteOne();
+    } else {
+      await Reaction.create({ message: id, user: req.user._id, emoji });
+    }
+
+    const reactionsDocs = await Reaction.find({ message: id });
+    const reactions = reactionsDocs.map((r) => ({
+      emoji: r.emoji,
+      userId: r.user.toString(),
+    }));
+
+    const io = req.app.get('io');
+    if (io) {
+      io.to(message.chat.toString()).emit('message:reactionUpdated', {
+        messageId: id,
+        reactions,
+      });
+    }
+
+    res.json({ messageId: id, reactions });
+  } catch (error) {
+    console.error('Toggle reaction error:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
@@ -213,6 +297,7 @@ const deleteMessage = async (req, res) => {
 
     // Delete for everyone
     await Message.findByIdAndDelete(id);
+    await Reaction.deleteMany({ message: id });
 
     const chat = await Chat.findById(message.chat);
     let updatedLatestMessage = null;
@@ -312,4 +397,5 @@ module.exports = {
   getThread,
   searchMessages,
   uploadAttachments,
+  toggleReaction,
 };

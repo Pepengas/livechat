@@ -3,17 +3,50 @@ import { ClipboardIcon, TrashIcon, ArrowUturnLeftIcon } from '@heroicons/react/2
 import { useChat } from '../../hooks/useChat';
 import linkify from '../../utils/linkify';
 import ReactionBar from './ReactionBar';
+import ReactionChips from './ReactionChips';
 
 const MessageItem = ({ message, isOwn, onDelete }) => {
   const { openThread, currentUser, toggleReaction } = useChat();
-  const barRef = React.useRef();
   const isTouch = typeof window !== 'undefined' && 'ontouchstart' in window;
   const text = message.text || message.content;
+  const [showBar, setShowBar] = React.useState(false);
+  const hoverTimeout = React.useRef();
+  const pressTimeout = React.useRef();
+
+  const openBar = () => setShowBar(true);
+  const closeBar = () => setShowBar(false);
 
   const handleKeyDown = (e) => {
-    if (e.key === ':') {
+    if (e.key.toLowerCase() === 'r') {
       e.preventDefault();
-      barRef.current?.openPicker();
+      openBar();
+    } else if (e.key === 'Escape') {
+      closeBar();
+    }
+  };
+
+  const handleMouseEnter = () => {
+    if (!isTouch) {
+      hoverTimeout.current = setTimeout(openBar, 80);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    if (!isTouch) {
+      clearTimeout(hoverTimeout.current);
+      closeBar();
+    }
+  };
+
+  const handlePointerDown = () => {
+    if (isTouch) {
+      pressTimeout.current = setTimeout(openBar, 350);
+    }
+  };
+
+  const handlePointerUp = () => {
+    if (isTouch) {
+      clearTimeout(pressTimeout.current);
     }
   };
 
@@ -52,7 +85,15 @@ const MessageItem = ({ message, isOwn, onDelete }) => {
   };
 
   return (
-    <div className="relative group" tabIndex={0} onKeyDown={handleKeyDown}>
+    <div
+      className="relative group"
+      tabIndex={0}
+      onKeyDown={handleKeyDown}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      onPointerDown={handlePointerDown}
+      onPointerUp={handlePointerUp}
+    >
       {text && (
         <div className="text-[15px] leading-6 whitespace-pre-wrap break-words">
           {linkify(text)}
@@ -61,18 +102,22 @@ const MessageItem = ({ message, isOwn, onDelete }) => {
       {message.attachments && message.attachments.map((att) => (
         <div key={att.id || att.url}>{renderAttachment(att)}</div>
       ))}
-      <div
-        className={`absolute -top-8 left-0 transition-opacity ${
-          isTouch ? '' : 'opacity-0 group-hover:opacity-100'
-        }`}
-      >
-        <ReactionBar
-          ref={barRef}
-          message={message}
-          currentUserId={currentUser?._id}
-          onReact={(emoji) => toggleReaction(message._id || message.id, emoji)}
-        />
-      </div>
+      {showBar && (
+        <div className="absolute -top-10 left-1/2 -translate-x-1/2 z-10">
+          <ReactionBar
+            onSelect={(emoji) => {
+              toggleReaction(message._id || message.id, emoji);
+              closeBar();
+            }}
+            onClose={closeBar}
+          />
+        </div>
+      )}
+      <ReactionChips
+        message={message}
+        currentUserId={currentUser?._id}
+        onReact={(emoji) => toggleReaction(message._id || message.id, emoji)}
+      />
       <div className="absolute -top-2 right-0 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
         <button onClick={handleCopy} className="p-1 hover:bg-gray-200 rounded" title="Copy">
           <ClipboardIcon className="h-4 w-4" />

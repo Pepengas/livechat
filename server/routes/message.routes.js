@@ -8,6 +8,7 @@ const {
   searchMessages,
   uploadAttachments,
   getThread,
+  toggleReaction,
 } = require('../controllers/message.controller');
 const multer = require('multer');
 const { isValidFileType } = require('../utils/fileUpload');
@@ -39,6 +40,9 @@ router.post('/', sendMessage);
 
 // Get a message thread
 router.get('/:id/thread', getThread);
+
+// Toggle reaction
+router.post('/:id/reactions', toggleReaction);
 
 // Get all messages for a chat
 router.get('/:chatId', getMessages);
