@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
 
 const AutocompletePopover = ({ items, anchorRect, onSelect, onClose, query = '', trigger }) => {
   const [highlightIndex, setHighlightIndex] = useState(0);
@@ -38,11 +38,32 @@ const AutocompletePopover = ({ items, anchorRect, onSelect, onClose, query = '',
     return () => document.removeEventListener('mousedown', handleClick);
   }, [onClose]);
 
+  useEffect(() => {
+    const handleClick = (e) => {
+      if (popoverRef.current && !popoverRef.current.contains(e.target)) {
+        onClose();
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [onClose]);
+
+  const [position, setPosition] = useState({ top: 0, left: 0 });
+
+  useLayoutEffect(() => {
+    if (!anchorRect) return;
+    const height = popoverRef.current?.offsetHeight || 0;
+    setPosition({
+      left: anchorRect.left,
+      top: anchorRect.top - height - 4,
+    });
+  }, [anchorRect, items]);
+
   if (!items || items.length === 0 || !anchorRect) return null;
 
   const style = {
-    top: anchorRect.bottom + 4,
-    left: anchorRect.left,
+    top: position.top,
+    left: position.left,
   };
 
   const renderName = (name) => {
