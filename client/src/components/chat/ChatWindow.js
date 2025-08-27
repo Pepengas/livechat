@@ -53,10 +53,9 @@ const ChatWindow = ({ toggleMobileMenu, openUserProfileModal, openGroupInfoModal
     }
   }, [messageLoading, selectedChat?._id]);
 
-  // Auto-scroll only when the user is already at the bottom
+  // Auto-scroll when new messages arrive if the user was near the bottom
   useEffect(() => {
-    const container = scrollContainerRef.current;
-    if (autoScroll && container && isAtBottom(container, BOTTOM_THRESHOLD)) {
+    if (autoScroll) {
       scrollToBottom();
     }
   }, [messages, autoScroll]);
