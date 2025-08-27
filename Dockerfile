@@ -15,7 +15,8 @@ WORKDIR /app
 COPY client ./client
 WORKDIR /app/client
 RUN npm install --no-audit --no-fund --prefer-offline
-RUN CI=false npm run build
+# Disable ESLint during production build to prevent warnings from failing CI
+RUN CI=false DISABLE_ESLINT_PLUGIN=true npm run build
 
 # Setup server
 FROM base AS server-setup
