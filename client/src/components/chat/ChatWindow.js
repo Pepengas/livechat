@@ -43,12 +43,14 @@ const ChatWindow = ({ toggleMobileMenu, openUserProfileModal, openGroupInfoModal
     if (selectedChat) {
       fetchMessages(selectedChat._id);
     }
-  }, [selectedChat]);
+  }, [selectedChat?._id]);
 
   useEffect(() => {
-    scrollToBottom();
-    setAutoScroll(true);
-  }, [selectedChat]);
+    if (selectedChat) {
+      scrollToBottom();
+      setAutoScroll(true);
+    }
+  }, [selectedChat?._id]);
 
   // Auto-scroll only when the user is already at the bottom
   useEffect(() => {
@@ -62,13 +64,11 @@ const ChatWindow = ({ toggleMobileMenu, openUserProfileModal, openGroupInfoModal
   const debouncedIsTyping = useDebounce(isTyping, 1000);
   
   useEffect(() => {
-    if (selectedChat) {
-      if (debouncedIsTyping) {
-        stopTyping(selectedChat._id);
-        setIsTyping(false);
-      }
+    if (selectedChat && debouncedIsTyping) {
+      stopTyping(selectedChat._id);
+      setIsTyping(false);
     }
-  }, [debouncedIsTyping, selectedChat]);
+  }, [debouncedIsTyping, selectedChat?._id]);
   
   const handleTyping = () => {
     if (!isTyping && selectedChat) {
