@@ -30,6 +30,7 @@ const ChatWindow = ({ toggleMobileMenu, openUserProfileModal, openGroupInfoModal
   const messagesEndRef = useRef(null);
   const scrollContainerRef = useRef(null);
   const [autoScroll, setAutoScroll] = useState(true);
+  const pendingScrollRef = useRef(false);
 
   // Track whether the user is near the bottom of the chat
   const handleScroll = () => {
@@ -42,13 +43,17 @@ const ChatWindow = ({ toggleMobileMenu, openUserProfileModal, openGroupInfoModal
   useEffect(() => {
     if (selectedChat) {
       fetchMessages(selectedChat._id);
+      pendingScrollRef.current = true;
     }
-  }, [selectedChat]);
+  }, [selectedChat?._id]);
 
   useEffect(() => {
-    scrollToBottom();
-    setAutoScroll(true);
-  }, [selectedChat]);
+    if (pendingScrollRef.current && !messageLoading) {
+      scrollToBottom();
+      setAutoScroll(true);
+      pendingScrollRef.current = false;
+    }
+  }, [messageLoading]);
 
   // Auto-scroll only when the user is already at the bottom
   useEffect(() => {
@@ -62,13 +67,11 @@ const ChatWindow = ({ toggleMobileMenu, openUserProfileModal, openGroupInfoModal
   const debouncedIsTyping = useDebounce(isTyping, 1000);
   
   useEffect(() => {
-    if (selectedChat) {
-      if (debouncedIsTyping) {
-        stopTyping(selectedChat._id);
-        setIsTyping(false);
-      }
+    if (selectedChat && debouncedIsTyping) {
+      stopTyping(selectedChat._id);
+      setIsTyping(false);
     }
-  }, [debouncedIsTyping, selectedChat]);
+  }, [debouncedIsTyping, selectedChat?._id]);
   
   const handleTyping = () => {
     if (!isTyping && selectedChat) {
