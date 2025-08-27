@@ -11,9 +11,11 @@ import MessageInput from './MessageInput';
 import LoadingSpinner from '../common/LoadingSpinner';
 import TypingIndicator from './TypingIndicator';
 
+const BOTTOM_THRESHOLD = 6;
+
 const ChatWindow = ({ toggleMobileMenu, openUserProfileModal, openGroupInfoModal }) => {
   const { currentUser } = useAuth();
-  const { 
+  const {
     selectedChat, 
     messages, 
     fetchMessages, 
@@ -33,7 +35,7 @@ const ChatWindow = ({ toggleMobileMenu, openUserProfileModal, openGroupInfoModal
   const handleScroll = () => {
     const container = scrollContainerRef.current;
     if (!container) return;
-    setAutoScroll(isAtBottom(container, 100));
+    setAutoScroll(isAtBottom(container, BOTTOM_THRESHOLD));
   };
   
   // Fetch messages when selected chat changes
@@ -51,7 +53,7 @@ const ChatWindow = ({ toggleMobileMenu, openUserProfileModal, openGroupInfoModal
   // Auto-scroll only when the user is already at the bottom
   useEffect(() => {
     const container = scrollContainerRef.current;
-    if (autoScroll && container && isAtBottom(container, 100)) {
+    if (autoScroll && container && isAtBottom(container, BOTTOM_THRESHOLD)) {
       scrollToBottom();
     }
   }, [messages, autoScroll]);
@@ -74,9 +76,9 @@ const ChatWindow = ({ toggleMobileMenu, openUserProfileModal, openGroupInfoModal
       startTyping(selectedChat._id);
     }
   };
-  
+
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
   };
   
   // Get chat name
