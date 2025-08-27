@@ -48,12 +48,12 @@ const ChatWindow = ({ toggleMobileMenu, openUserProfileModal, openGroupInfoModal
   }, [selectedChat?._id]);
 
   useEffect(() => {
-    if (pendingScrollRef.current && !messageLoading) {
+    if (pendingScrollRef.current) {
       scrollToBottom();
       setAutoScroll(true);
       pendingScrollRef.current = false;
     }
-  }, [messageLoading]);
+  }, [messages, selectedChat?._id]);
 
   // Auto-scroll only when the user is already at the bottom
   useEffect(() => {
