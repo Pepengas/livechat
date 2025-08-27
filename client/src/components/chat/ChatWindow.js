@@ -3,6 +3,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { useChat } from '../../hooks/useChat';
 import { useSocket } from '../../hooks/useSocket';
 import { useDebounce } from '../../hooks/useDebounce';
+import { isAtBottom } from '../../utils/scroll';
 
 // Components
 import MessageList from './MessageList';
@@ -28,14 +29,11 @@ const ChatWindow = ({ toggleMobileMenu, openUserProfileModal, openGroupInfoModal
   const scrollContainerRef = useRef(null);
   const [autoScroll, setAutoScroll] = useState(true);
 
-  // Track whether user is at the bottom of the chat
+  // Track whether the user is near the bottom of the chat
   const handleScroll = () => {
     const container = scrollContainerRef.current;
     if (!container) return;
-    const atBottom =
-      container.scrollHeight - container.scrollTop - container.clientHeight <
-      100;
-    setAutoScroll(atBottom);
+    setAutoScroll(isAtBottom(container, 100));
   };
   
   // Fetch messages when selected chat changes
@@ -49,6 +47,14 @@ const ChatWindow = ({ toggleMobileMenu, openUserProfileModal, openGroupInfoModal
     scrollToBottom();
     setAutoScroll(true);
   }, [selectedChat]);
+
+  // Auto-scroll only when the user is already at the bottom
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (autoScroll && container && isAtBottom(container, 100)) {
+      scrollToBottom();
+    }
+  }, [messages, autoScroll]);
   
   // Handle typing indicator
   const debouncedIsTyping = useDebounce(isTyping, 1000);
