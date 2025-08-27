@@ -158,6 +158,7 @@ const MessageList = ({ messages, currentUser, selectedChat }) => {
       <ThreadPanel />
       <div ref={bottomRef} />
       {showUnreadButton && (
+        // user must click to jump; no automatic scrolling
         <button
           onClick={jumpToUnread}
           aria-label="Jump to last unread"

@@ -44,6 +44,7 @@ const useStickyScroll = ({ firstUnreadId, scrollToMessage, onReachedLatest, dela
     };
   }, [onReachedLatest, delay]);
 
+  // Only scroll when explicitly triggered by the consumer
   const jumpToUnread = () => {
     if (firstUnreadId) scrollToMessage(firstUnreadId);
   };
