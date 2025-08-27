@@ -3,15 +3,13 @@ import { useAuth } from '../../hooks/useAuth';
 import { useChat } from '../../hooks/useChat';
 import { useSocket } from '../../hooks/useSocket';
 import { useDebounce } from '../../hooks/useDebounce';
-import { isAtBottom } from '../../utils/scroll';
+import ScrollManager from '../../scroll/ScrollManager';
 
 // Components
 import MessageList from './MessageList';
 import MessageInput from './MessageInput';
 import LoadingSpinner from '../common/LoadingSpinner';
 import TypingIndicator from './TypingIndicator';
-
-const BOTTOM_THRESHOLD = 48; // be forgiving; 6px is too strict on some devices
 
 const ChatWindow = ({ toggleMobileMenu, openUserProfileModal, openGroupInfoModal }) => {
   const { currentUser } = useAuth();
@@ -27,24 +25,14 @@ const ChatWindow = ({ toggleMobileMenu, openUserProfileModal, openGroupInfoModal
   const { isUserOnline } = useSocket();
   
   const [isTyping, setIsTyping] = useState(false);
-  const scrollContainerRef = useRef(null);
-  const messagesEndRef = useRef(null);
-  const [autoScroll, setAutoScroll] = useState(true);
+  const scrollManagerRef = useRef(new ScrollManager());
+  const containerRef = useRef(null);
 
-  // jump to bottom of the scroll container
-  const scrollToBottom = () => {
-    const el = scrollContainerRef.current;
-    if (!el) return;
-    // jump instantly on initial loads; smooth only when appropriate
-    el.scrollTo({ top: el.scrollHeight, behavior: 'auto' });
-  };
-
-  // Keep autoScroll in sync with the user's scroll position
-  const handleScroll = () => {
-    const el = scrollContainerRef.current;
-    if (!el) return;
-    setAutoScroll(isAtBottom(el, BOTTOM_THRESHOLD));
-  };
+  useEffect(() => {
+    const mgr = scrollManagerRef.current;
+    if (containerRef.current) mgr.attach(containerRef.current);
+    return () => mgr.detach();
+  }, []);
   
   // Fetch messages when selected chat changes
   useEffect(() => {
@@ -56,8 +44,9 @@ const ChatWindow = ({ toggleMobileMenu, openUserProfileModal, openGroupInfoModal
   // After messages load for a newly selected chat, jump to the bottom once
   useEffect(() => {
     if (!messageLoading && selectedChat) {
-      scrollToBottom();
-      setAutoScroll(true);
+      const mgr = scrollManagerRef.current;
+      mgr.policy.initialLoaded = true;
+      mgr.scrollToBottom('auto');
     }
   }, [messageLoading, selectedChat?._id]);
 
@@ -65,21 +54,23 @@ const ChatWindow = ({ toggleMobileMenu, openUserProfileModal, openGroupInfoModal
   useEffect(() => {
     const last = messages[messages.length - 1];
     if (!last) return;
-
-    const isOwn =
-      (last.sender?._id || last.sender?.id) === currentUser._id;
-
-    if (isOwn) {
-      scrollToBottom();
-      setAutoScroll(true); // I just posted → keep me following
-      return;
+    const isOwn = (last.sender?._id || last.sender?.id) === currentUser._id;
+    const mgr = scrollManagerRef.current;
+    if (mgr.shouldFollowNewMessage({ isOwn })) {
+      const behavior =
+        isOwn || !mgr.policy.initialLoaded ? 'auto' : 'smooth';
+      mgr.scrollToBottom(behavior);
     }
+  }, [messages, currentUser._id]);
 
-    // Only follow incoming messages if I'm already at/near the bottom
-    if (autoScroll && isAtBottom(scrollContainerRef.current, BOTTOM_THRESHOLD)) {
-      scrollToBottom();
+  // Dev helper to trace unexpected scrolls
+  useEffect(() => {
+    if (process.env.NODE_ENV !== 'production' && containerRef.current) {
+      import('../../debug/hookScrollMethods').then((m) =>
+        m.hookScrollMethods(containerRef.current, 'chat')
+      );
     }
-  }, [messages, autoScroll, currentUser._id]);
+  }, []);
   
   // Handle typing indicator
   const debouncedIsTyping = useDebounce(isTyping, 1000);
@@ -265,9 +256,8 @@ const ChatWindow = ({ toggleMobileMenu, openUserProfileModal, openGroupInfoModal
           
           {/* Messages */}
           <div
-            ref={scrollContainerRef}
+            ref={containerRef}
             className="chat-scroll"
-            onScroll={handleScroll}
           >
             <div className="chat-column">
               {messageLoading ? (
@@ -287,6 +277,7 @@ const ChatWindow = ({ toggleMobileMenu, openUserProfileModal, openGroupInfoModal
                   messages={messages}
                   currentUser={currentUser}
                   selectedChat={selectedChat}
+                  scrollManagerRef={scrollManagerRef}
                 />
               )}
 
@@ -294,7 +285,7 @@ const ChatWindow = ({ toggleMobileMenu, openUserProfileModal, openGroupInfoModal
                 <TypingIndicator text={getTypingText()} />
               )}
 
-              <div ref={messagesEndRef} />
+              {/* bottom sentinel removed; ScrollManager handles scrolling */}
             </div>
           </div>
 

@@ -9,7 +9,6 @@ const ThreadPanel = () => {
   const { currentUser } = useAuth();
   const [text, setText] = useState('');
   const panelRef = useRef(null);
-  const bottomRef = useRef(null);
 
   useEffect(() => {
     if (activeThreadParent) {
@@ -38,14 +37,7 @@ const ThreadPanel = () => {
     };
   }, [activeThreadParent, closeThread]);
 
-  useEffect(() => {
-    const last = threadMessages[threadMessages.length - 1];
-    if (!last) return;
-    const isMine = (last.sender?._id || last.sender?.id) === currentUser._id;
-    if (isMine) {
-      bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, [threadMessages, currentUser]);
+  // No automatic scrolling; user controls position
 
   if (!activeThreadParent) return null;
 
@@ -72,7 +64,6 @@ const ThreadPanel = () => {
               isOwn={(m.sender?._id || m.sender?.id) === currentUser._id}
             />
           ))}
-          <div ref={bottomRef} />
         </div>
         <form onSubmit={handleSubmit} className="p-2 border-t">
           <input
