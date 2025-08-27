@@ -8,7 +8,7 @@ import ThreadPanel from './ThreadPanel';
 import UnreadDivider from './UnreadDivider';
 import useStickyScroll from '../../hooks/useStickyScroll';
 
-const MessageList = ({ messages, currentUser, selectedChat }) => {
+const MessageList = ({ messages, currentUser, selectedChat, scrollManagerRef }) => {
   const { deleteMessageById, startReply, markMessageAsRead } = useChat();
   const [messageToDelete, setMessageToDelete] = useState(null);
   const messageRefs = useRef({});
@@ -38,7 +38,6 @@ const MessageList = ({ messages, currentUser, selectedChat }) => {
     dividerRef,
     bottomRef,
     showUnreadButton,
-    jumpToUnread,
   } = useStickyScroll({
     firstUnreadId,
     scrollToMessage,
@@ -160,7 +159,7 @@ const MessageList = ({ messages, currentUser, selectedChat }) => {
       {showUnreadButton && (
         // user must click to jump; no automatic scrolling
         <button
-          onClick={jumpToUnread}
+          onClick={() => scrollManagerRef.current.scrollToBottom('smooth')}
           aria-label="Jump to last unread"
           className="fixed right-4 bottom-24 md:bottom-6 p-3 rounded-full bg-primary-600 text-white shadow-lg"
         >
