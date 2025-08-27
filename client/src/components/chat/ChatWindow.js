@@ -30,7 +30,6 @@ const ChatWindow = ({ toggleMobileMenu, openUserProfileModal, openGroupInfoModal
   const messagesEndRef = useRef(null);
   const scrollContainerRef = useRef(null);
   const [autoScroll, setAutoScroll] = useState(true);
-  const pendingScrollRef = useRef(false);
 
   // Track whether the user is near the bottom of the chat
   const handleScroll = () => {
@@ -43,25 +42,34 @@ const ChatWindow = ({ toggleMobileMenu, openUserProfileModal, openGroupInfoModal
   useEffect(() => {
     if (selectedChat) {
       fetchMessages(selectedChat._id);
-      pendingScrollRef.current = true;
     }
   }, [selectedChat?._id]);
 
+  // Scroll to bottom after messages have finished loading for a new chat
   useEffect(() => {
-    if (pendingScrollRef.current) {
+    if (!messageLoading && selectedChat) {
       scrollToBottom();
       setAutoScroll(true);
-      pendingScrollRef.current = false;
     }
-  }, [messages, selectedChat?._id]);
+  }, [messageLoading, selectedChat?._id]);
 
-  // Auto-scroll only when the user is already at the bottom
+  // Auto-scroll rules:
+  // - Always scroll when the current user sends a message
+  // - Otherwise only scroll if the user is already near the bottom
   useEffect(() => {
-    const container = scrollContainerRef.current;
-    if (autoScroll && container && isAtBottom(container, BOTTOM_THRESHOLD)) {
+    const lastMessage = messages[messages.length - 1];
+    if (!lastMessage) return;
+
+    const isOwnMessage =
+      (lastMessage.sender?._id || lastMessage.sender?.id) === currentUser._id;
+
+    if (isOwnMessage) {
+      scrollToBottom();
+      setAutoScroll(true);
+    } else if (autoScroll) {
       scrollToBottom();
     }
-  }, [messages, autoScroll]);
+  }, [messages, autoScroll, currentUser._id]);
   
   // Handle typing indicator
   const debouncedIsTyping = useDebounce(isTyping, 1000);
