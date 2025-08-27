@@ -53,11 +53,11 @@ const ChatWindow = ({ toggleMobileMenu, openUserProfileModal, openGroupInfoModal
     }
   }, [messageLoading, selectedChat?._id]);
 
-  // Auto-scroll rules:
+// Auto-scroll rules:
   // - Always scroll when the current user sends a message
   // - Otherwise only scroll if the user is already near the bottom
   useEffect(() => {
-    const lastMessage = messages[messages.length - 1];
+        const lastMessage = messages[messages.length - 1];
     if (!lastMessage) return;
 
     const isOwnMessage =
