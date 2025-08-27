@@ -53,12 +53,23 @@ const ChatWindow = ({ toggleMobileMenu, openUserProfileModal, openGroupInfoModal
     }
   }, [messageLoading, selectedChat?._id]);
 
-  // Auto-scroll when new messages arrive if the user was near the bottom
+// Auto-scroll rules:
+  // - Always scroll when the current user sends a message
+  // - Otherwise only scroll if the user is already near the bottom
   useEffect(() => {
-    if (autoScroll) {
+        const lastMessage = messages[messages.length - 1];
+    if (!lastMessage) return;
+
+    const isOwnMessage =
+      (lastMessage.sender?._id || lastMessage.sender?.id) === currentUser._id;
+
+    if (isOwnMessage) {
+      scrollToBottom();
+      setAutoScroll(true);
+    } else if (autoScroll) {
       scrollToBottom();
     }
-  }, [messages, autoScroll]);
+  }, [messages, autoScroll, currentUser._id]);
   
   // Handle typing indicator
   const debouncedIsTyping = useDebounce(isTyping, 1000);
