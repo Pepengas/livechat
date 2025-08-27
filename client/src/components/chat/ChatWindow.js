@@ -28,12 +28,13 @@ const ChatWindow = ({ toggleMobileMenu, openUserProfileModal, openGroupInfoModal
   const [initialJumpDone, setInitialJumpDone] = useState(false);
   const scrollManagerRef = useRef(new ScrollManager());
   const containerRef = useRef(null);
+  const loadStartedRef = useRef(false);
 
   useEffect(() => {
     const mgr = scrollManagerRef.current;
     if (containerRef.current) mgr.attach(containerRef.current);
     return () => mgr.detach();
-  }, []);
+  }, [selectedChat?._id]);
   
   // Fetch messages when selected chat changes
   useEffect(() => {
@@ -46,11 +47,20 @@ const ChatWindow = ({ toggleMobileMenu, openUserProfileModal, openGroupInfoModal
   useEffect(() => {
     setInitialJumpDone(false);
     scrollManagerRef.current.policy.initialLoaded = false;
+  // Reset initial jump state when switching chats
+  useEffect(() => {
+    setInitialJumpDone(false);
+    scrollManagerRef.current.policy.initialLoaded = false;
+    loadStartedRef.current = false;
   }, [selectedChat?._id]);
 
   // After messages load for a newly selected chat, jump to the bottom once
   useEffect(() => {
-    if (!messageLoading && selectedChat && !initialJumpDone) {
+    if (messageLoading) {
+      loadStartedRef.current = true;
+      return;
+    }
+    if (selectedChat && !initialJumpDone && loadStartedRef.current) {
       const mgr = scrollManagerRef.current;
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
