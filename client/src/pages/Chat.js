@@ -67,7 +67,7 @@ const Chat = () => {
   };
 
   return (
-    <div className="h-full flex relative">
+    <div className="h-full flex relative overscroll-none min-h-0">
       {isMobileMenuOpen && (
         <div
           className="fixed inset-0 bg-black/40 z-20 md:hidden transition-opacity"
