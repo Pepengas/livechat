@@ -25,6 +25,7 @@ const ChatWindow = ({ toggleMobileMenu, openUserProfileModal, openGroupInfoModal
   const { isUserOnline } = useSocket();
   
   const [isTyping, setIsTyping] = useState(false);
+  const [initialJumpDone, setInitialJumpDone] = useState(false);
   const scrollManagerRef = useRef(new ScrollManager());
   const containerRef = useRef(null);
 
@@ -41,14 +42,25 @@ const ChatWindow = ({ toggleMobileMenu, openUserProfileModal, openGroupInfoModal
     }
   }, [selectedChat?._id]);
 
+  // Reset initial jump state when switching chats
+  useEffect(() => {
+    setInitialJumpDone(false);
+    scrollManagerRef.current.policy.initialLoaded = false;
+  }, [selectedChat?._id]);
+
   // After messages load for a newly selected chat, jump to the bottom once
   useEffect(() => {
-    if (!messageLoading && selectedChat) {
+    if (!messageLoading && selectedChat && !initialJumpDone) {
       const mgr = scrollManagerRef.current;
-      mgr.policy.initialLoaded = true;
-      mgr.scrollToBottom('auto');
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          mgr.scrollToBottom('auto');
+          setInitialJumpDone(true);
+          mgr.policy.initialLoaded = true;
+        });
+      });
     }
-  }, [messageLoading, selectedChat?._id]);
+  }, [messageLoading, selectedChat?._id, initialJumpDone]);
 
   // Sender-aware auto-scroll on new messages
   useEffect(() => {
@@ -57,9 +69,7 @@ const ChatWindow = ({ toggleMobileMenu, openUserProfileModal, openGroupInfoModal
     const isOwn = (last.sender?._id || last.sender?.id) === currentUser._id;
     const mgr = scrollManagerRef.current;
     if (mgr.shouldFollowNewMessage({ isOwn })) {
-      const behavior =
-        isOwn || !mgr.policy.initialLoaded ? 'auto' : 'smooth';
-      mgr.scrollToBottom(behavior);
+      mgr.scrollToBottom(isOwn ? 'auto' : 'smooth');
     }
   }, [messages, currentUser._id]);
 
