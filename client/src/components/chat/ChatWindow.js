@@ -30,6 +30,7 @@ const ChatWindow = ({ toggleMobileMenu, openUserProfileModal, openGroupInfoModal
   const messagesEndRef = useRef(null);
   const scrollContainerRef = useRef(null);
   const [autoScroll, setAutoScroll] = useState(true);
+  const pendingScrollRef = useRef(false);
 
   // Track whether the user is near the bottom of the chat
   const handleScroll = () => {
@@ -42,15 +43,17 @@ const ChatWindow = ({ toggleMobileMenu, openUserProfileModal, openGroupInfoModal
   useEffect(() => {
     if (selectedChat) {
       fetchMessages(selectedChat._id);
+      pendingScrollRef.current = true;
     }
   }, [selectedChat?._id]);
 
   useEffect(() => {
-    if (selectedChat) {
+    if (pendingScrollRef.current && !messageLoading) {
       scrollToBottom();
       setAutoScroll(true);
+      pendingScrollRef.current = false;
     }
-  }, [selectedChat?._id]);
+  }, [messageLoading]);
 
   // Auto-scroll only when the user is already at the bottom
   useEffect(() => {
