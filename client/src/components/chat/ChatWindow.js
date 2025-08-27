@@ -47,6 +47,10 @@ const ChatWindow = ({ toggleMobileMenu, openUserProfileModal, openGroupInfoModal
   useEffect(() => {
     setInitialJumpDone(false);
     scrollManagerRef.current.policy.initialLoaded = false;
+  // Reset initial jump state when switching chats
+  useEffect(() => {
+    setInitialJumpDone(false);
+    scrollManagerRef.current.policy.initialLoaded = false;
     loadStartedRef.current = false;
   }, [selectedChat?._id]);
 
