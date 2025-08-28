@@ -84,7 +84,7 @@ const MessageList = ({ messages, currentUser, selectedChat, scrollManagerRef, ty
     return rows;
   }, [messages, firstUnreadId, typingText]);
 
-  // Reset cached sizes whenever the row structure changes
+// Reset cached sizes whenever the row structure changes
   useEffect(() => {
     sizeMap.current = {};
     listRef.current?.resetAfterIndex(0, true);
@@ -124,7 +124,7 @@ const MessageList = ({ messages, currentUser, selectedChat, scrollManagerRef, ty
     }
   };
 
-  const itemKey = useCallback(
+const itemKey = useCallback(
     (index) => {
       const row = rows[index];
       if (row.type === 'date') return `date-${row.date.toISOString()}`;
