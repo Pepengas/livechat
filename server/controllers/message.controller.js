@@ -2,7 +2,6 @@ const Message = require('../models/message.model');
 const User = require('../models/user.model');
 const Chat = require('../models/chat.model');
 const Reaction = require('../models/reaction.model');
-const mongoose = require('mongoose');
 const path = require('path');
 const {
   isValidFileType,
@@ -84,66 +83,36 @@ const sendMessage = async (req, res) => {
 };
 
 /**
- * @desc    Get messages for a chat with cursor pagination
- * @route   GET /api/messages/:chatId?before=<ISO|ObjectId>&limit=50
+ * @desc    Get all messages for a chat
+ * @route   GET /api/messages/:chatId
  * @access  Private
  */
 const getMessages = async (req, res) => {
   try {
     const { chatId } = req.params;
-    const { before, limit = 50 } = req.query;
-
+    
     // Find the chat
     const chat = await Chat.findById(chatId);
-
+    
     if (!chat) {
       return res.status(404).json({ message: 'Chat not found' });
     }
-
+    
     // Check if user is part of the chat
     if (!chat.users.includes(req.user._id)) {
       return res.status(403).json({ message: 'Not authorized to view these messages' });
     }
 
-    const query = {
-      chat: chatId,
-      parentMessage: null,
-      deletedForEveryone: { $ne: true },
-      deletedFor: { $ne: req.user._id },
-    };
-
-    if (before) {
-      let cursorDate = null;
-      let cursorId = null;
-
-      if (mongoose.Types.ObjectId.isValid(before)) {
-        const cursorMsg = await Message.findById(before).select('_id createdAt');
-        if (cursorMsg) {
-          cursorDate = cursorMsg.createdAt;
-          cursorId = cursorMsg._id;
-        }
-      }
-
-      if (!cursorDate) {
-        const d = new Date(before);
-        if (!isNaN(d)) cursorDate = d;
-      }
-
-      if (cursorDate) {
-        query.$or = [
-          { createdAt: { $lt: cursorDate } },
-          { createdAt: cursorDate, _id: { $lt: cursorId || mongoose.Types.ObjectId.createFromTime(Math.floor(cursorDate.getTime() / 1000)) } },
-        ];
-      }
-    }
-
-    const limitNum = parseInt(limit, 10) || 50;
-
-    const messagesDocs = await Message.find(query)
+    // Get messages for the chat excluding ones deleted for this user or everyone
+    const messagesDocs = await Message.find({
+        chat: chatId,
+        parentMessage: null,
+        deletedForEveryone: { $ne: true },
+        deletedFor: { $ne: req.user._id }
+      })
       .populate('sender', 'name email avatar')
       .populate('readBy', 'name email avatar')
-      .sort({ createdAt: -1, _id: -1 })
-      .limit(limitNum);
+      .sort({ createdAt: 1 });
 
     const ids = messagesDocs.map((m) => m._id);
     const reactions = await Reaction.find({ message: { $in: ids } });
@@ -154,15 +123,12 @@ const getMessages = async (req, res) => {
       reactionMap[key].push({ emoji: r.emoji, userId: r.user.toString() });
     });
 
-    const items = messagesDocs.map((m) => ({
+    const messages = messagesDocs.map((m) => ({
       ...m.toObject(),
       reactions: reactionMap[m._id.toString()] || [],
     }));
 
-    const hasMore = items.length === limitNum;
-    const nextCursor = hasMore ? items[items.length - 1]._id : null;
-
-    res.json({ items, nextCursor, hasMore });
+    res.json(messages);
   } catch (error) {
     console.error('Get messages error:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
