@@ -1,14 +1,13 @@
 import api from 'services/apiClient';
 
 /**
- * Get messages for a chat with pagination
+ * Get all messages for a chat
  * @param {string} chatId - Chat ID
- * @param {{before?: string, limit?: number}} params - Pagination params
- * @returns {Promise<Object>} { items, nextCursor, hasMore }
+ * @returns {Promise<Array>} List of messages
  */
-export const getMessages = async (chatId, params = {}) => {
+export const getMessages = async (chatId) => {
   try {
-    const response = await api.get(`/messages/${chatId}`, { params });
+    const response = await api.get(`/messages/${chatId}`);
     return response.data;
   } catch (error) {
     throw error.response?.data || { message: 'Failed to fetch messages' };
