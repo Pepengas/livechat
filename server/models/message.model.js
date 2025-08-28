@@ -75,9 +75,6 @@ const messageSchema = new mongoose.Schema(
   }
 );
 
-messageSchema.index({ chat: 1, createdAt: -1 });
-messageSchema.index({ chat: 1, _id: -1 });
-
 const Message = mongoose.model('Message', messageSchema);
 
 module.exports = Message;
