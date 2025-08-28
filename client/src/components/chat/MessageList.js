@@ -84,6 +84,12 @@ const MessageList = ({ messages, currentUser, selectedChat, scrollManagerRef, ty
     return rows;
   }, [messages, firstUnreadId, typingText]);
 
+// Reset cached sizes whenever the row structure changes
+  useEffect(() => {
+    sizeMap.current = {};
+    listRef.current?.resetAfterIndex(0, true);
+  }, [rows]);
+
   const getSize = (index) => sizeMap.current[index] || 80;
   const setSize = (index, size) => {
     if (sizeMap.current[index] !== size) {
@@ -117,6 +123,18 @@ const MessageList = ({ messages, currentUser, selectedChat, scrollManagerRef, ty
       console.error('Error deleting message for everyone:', err);
     }
   };
+
+const itemKey = useCallback(
+    (index) => {
+      const row = rows[index];
+      if (row.type === 'date') return `date-${row.date.toISOString()}`;
+      if (row.type === 'unread') return 'unread';
+      if (row.type === 'typing') return 'typing';
+      if (row.type === 'group') return `group-${row.group.items[0]?._id}`;
+      return index;
+    },
+    [rows]
+  );
 
   const scrollToMessage = (id) => {
     const index = messageRowMap.current[id];
@@ -204,6 +222,7 @@ const MessageList = ({ messages, currentUser, selectedChat, scrollManagerRef, ty
             estimatedItemSize={80}
             ref={listRef}
             onScroll={handleScroll}
+            itemKey={itemKey}
             outerElementType={Outer}
             innerElementType={Inner}
             outerRef={outerRef}
