@@ -1,4 +1,6 @@
-import React, { useMemo, useState, useRef } from 'react';
+import React, { useMemo, useState, useRef, useEffect, useCallback } from 'react';
+import { VariableSizeList } from 'react-window';
+import AutoSizer from 'react-virtualized-auto-sizer';
 import { useChat } from '../../hooks/useChat';
 import groupMessages from '../../utils/groupMessages';
 import DateDivider from './DateDivider';
@@ -6,44 +8,39 @@ import MessageGroup from './MessageGroup';
 import DeleteMessageModal from '../modals/DeleteMessageModal';
 import ThreadPanel from './ThreadPanel';
 import UnreadDivider from './UnreadDivider';
-import useStickyScroll from '../../hooks/useStickyScroll';
+import TypingIndicator from './TypingIndicator';
 
-const MessageList = ({ messages, currentUser, selectedChat, scrollManagerRef }) => {
-  const { deleteMessageById, startReply, markMessageAsRead } = useChat();
+const Outer = React.forwardRef((props, ref) => (
+  <div ref={ref} className="chat-scroll" {...props} />
+));
+
+const Inner = React.forwardRef((props, ref) => (
+  <div ref={ref} className="chat-column" {...props} />
+));
+
+const MessageList = ({ messages, currentUser, selectedChat, scrollManagerRef, typingText }) => {
+  const { deleteMessageById, startReply, loadOlderMessages, messagePageInfo } = useChat();
   const [messageToDelete, setMessageToDelete] = useState(null);
   const messageRefs = useRef({});
+  const listRef = useRef();
+  const outerRef = useRef();
+  const sizeMap = useRef({});
+  const messageRowMap = useRef({});
+  const [highlightId, setHighlightId] = useState(null);
+  const [scrollTarget, setScrollTarget] = useState(null);
 
-  const scrollToMessage = (id) => {
-    const el = messageRefs.current[id];
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      el.classList.add('ring-2', 'ring-blue-400');
-      setTimeout(() => {
-        el.classList.remove('ring-2', 'ring-blue-400');
-      }, 2000);
-    }
-  };
+  useEffect(() => {
+    const mgr = scrollManagerRef.current;
+    if (outerRef.current) mgr.attach(outerRef.current);
+    return () => mgr.detach();
+  }, [scrollManagerRef, selectedChat?._id]);
 
   const firstUnreadId = useMemo(() => {
-    const lastReadAt = selectedChat?.lastReadAt
-      ? new Date(selectedChat.lastReadAt)
-      : null;
+    const lastReadAt = selectedChat?.lastReadAt ? new Date(selectedChat.lastReadAt) : null;
     if (!lastReadAt) return null;
     const first = messages.find((m) => new Date(m.createdAt) > lastReadAt);
     return first ? first._id : null;
   }, [messages, selectedChat]);
-
-  const {
-    listRef,
-    dividerRef,
-    bottomRef,
-    showUnreadButton,
-  } = useStickyScroll({
-    firstUnreadId,
-    scrollToMessage,
-    onReachedLatest: () =>
-      selectedChat && markMessageAsRead(selectedChat._id),
-  });
 
   const registerMessageRef = (id) => (el) => {
     if (el) {
@@ -55,7 +52,45 @@ const MessageList = ({ messages, currentUser, selectedChat, scrollManagerRef }) 
     startReply(message);
   };
 
-  const groups = useMemo(() => groupMessages(messages), [messages]);
+  const rows = useMemo(() => {
+    const groups = groupMessages(messages);
+    const rows = [];
+    const map = {};
+    let lastDate = null;
+    groups.forEach((group) => {
+      const dateStr = group.startAt.toDateString();
+      const showDivider = lastDate !== dateStr;
+      lastDate = dateStr;
+      const containsUnread = firstUnreadId && group.items.some((m) => m._id === firstUnreadId);
+      if (showDivider) rows.push({ type: 'date', date: group.startAt });
+      if (containsUnread) {
+        const index = group.items.findIndex((m) => m._id === firstUnreadId);
+        const before = group.items.slice(0, index);
+        const after = group.items.slice(index);
+        if (before.length > 0) {
+          rows.push({ type: 'group', group: { ...group, items: before } });
+          before.forEach((m) => (map[m._id] = rows.length - 1));
+        }
+        rows.push({ type: 'unread' });
+        rows.push({ type: 'group', group: { ...group, items: after } });
+        after.forEach((m) => (map[m._id] = rows.length - 1));
+      } else {
+        rows.push({ type: 'group', group });
+        group.items.forEach((m) => (map[m._id] = rows.length - 1));
+      }
+    });
+    if (typingText) rows.push({ type: 'typing', text: typingText });
+    messageRowMap.current = map;
+    return rows;
+  }, [messages, firstUnreadId, typingText]);
+
+  const getSize = (index) => sizeMap.current[index] || 80;
+  const setSize = (index, size) => {
+    if (sizeMap.current[index] !== size) {
+      sizeMap.current[index] = size;
+      listRef.current?.resetAfterIndex(index);
+    }
+  };
 
   const handleDeleteRequest = (id) => {
     setMessageToDelete(id);
@@ -83,69 +118,100 @@ const MessageList = ({ messages, currentUser, selectedChat, scrollManagerRef }) 
     }
   };
 
-  let lastDate = null;
-  let lastMessageDate = null;
+  const scrollToMessage = (id) => {
+    const index = messageRowMap.current[id];
+    if (index != null) {
+      setScrollTarget(id);
+      listRef.current.scrollToItem(index, 'start');
+      setHighlightId(id);
+      setTimeout(() => setHighlightId(null), 2000);
+    }
+  };
+
+  useEffect(() => {
+    if (scrollTarget && messageRefs.current[scrollTarget]) {
+      messageRefs.current[scrollTarget].scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setScrollTarget(null);
+    }
+  }, [scrollTarget, rows]);
+
+  const handleScroll = ({ scrollOffset }) => {
+    if (scrollOffset === 0 && messagePageInfo[selectedChat._id]?.hasMore) {
+      const el = outerRef.current;
+      const prev = el.scrollHeight;
+      loadOlderMessages(selectedChat._id).then(() => {
+        requestAnimationFrame(() => {
+          const diff = el.scrollHeight - prev;
+          el.scrollTop = diff;
+        });
+      });
+    }
+  };
+
+  const Row = ({ index, style }) => {
+    const row = rows[index];
+    const ref = useCallback((node) => {
+      if (node) {
+        const h = node.getBoundingClientRect().height;
+        setSize(index, h);
+      }
+    }, [index]);
+    if (row.type === 'date') {
+      return (
+        <div style={style} ref={ref}>
+          <DateDivider date={row.date} />
+        </div>
+      );
+    }
+    if (row.type === 'unread') {
+      return (
+        <div style={style} ref={ref}>
+          <UnreadDivider />
+        </div>
+      );
+    }
+    if (row.type === 'typing') {
+      return (
+        <div style={style} ref={ref}>
+          <TypingIndicator text={row.text} />
+        </div>
+      );
+    }
+    return (
+      <div style={style} ref={ref}>
+        <MessageGroup
+          group={row.group}
+          currentUser={currentUser}
+          onDelete={handleDeleteRequest}
+          prevMessageDate={null}
+          registerMessageRef={registerMessageRef}
+          onReply={handleReply}
+          highlightId={highlightId}
+        />
+      </div>
+    );
+  };
+
   return (
-    <div ref={listRef} className="space-y-2 relative">
-      {groups.map((group) => {
-        const dateStr = group.startAt.toDateString();
-        const showDivider = lastDate !== dateStr;
-        lastDate = dateStr;
-        const containsUnread =
-          firstUnreadId && group.items.some((m) => m._id === firstUnreadId);
-
-        if (containsUnread) {
-          const index = group.items.findIndex((m) => m._id === firstUnreadId);
-          const before = group.items.slice(0, index);
-          const after = group.items.slice(index);
-          const lastItem = after[after.length - 1];
-          lastMessageDate = new Date(lastItem.createdAt);
-          return (
-            <React.Fragment key={group.key}>
-              {showDivider && <DateDivider date={group.startAt} />}
-              {before.length > 0 && (
-                <MessageGroup
-                  group={{ ...group, items: before }}
-                  currentUser={currentUser}
-                  onDelete={handleDeleteRequest}
-                  prevMessageDate={lastMessageDate}
-                  registerMessageRef={registerMessageRef}
-                  onReply={handleReply}
-                  scrollToMessage={scrollToMessage}
-                />
-              )}
-              <UnreadDivider ref={dividerRef} />
-              <MessageGroup
-                group={{ ...group, items: after }}
-                currentUser={currentUser}
-                onDelete={handleDeleteRequest}
-                prevMessageDate={lastMessageDate}
-                registerMessageRef={registerMessageRef}
-                onReply={handleReply}
-                scrollToMessage={scrollToMessage}
-              />
-            </React.Fragment>
-          );
-        }
-
-        const element = (
-          <React.Fragment key={group.key}>
-            {showDivider && <DateDivider date={group.startAt} />}
-            <MessageGroup
-              group={group}
-              currentUser={currentUser}
-              onDelete={handleDeleteRequest}
-              prevMessageDate={lastMessageDate}
-              registerMessageRef={registerMessageRef}
-              onReply={handleReply}
-              scrollToMessage={scrollToMessage}
-            />
-          </React.Fragment>
-        );
-        const lastItem = group.items[group.items.length - 1];
-        lastMessageDate = new Date(lastItem.createdAt);
-        return element;
-      })}
+    <>
+      <AutoSizer>
+        {({ height, width }) => (
+          <VariableSizeList
+            height={height}
+            width={width}
+            itemCount={rows.length}
+            itemSize={getSize}
+            estimatedItemSize={80}
+            ref={listRef}
+            onScroll={handleScroll}
+            outerElementType={Outer}
+            innerElementType={Inner}
+            outerRef={outerRef}
+          >
+            {Row}
+          </VariableSizeList>
+        )}
+      </AutoSizer>
       {messageToDelete && (
         <DeleteMessageModal
           isOpen={!!messageToDelete}
@@ -155,31 +221,7 @@ const MessageList = ({ messages, currentUser, selectedChat, scrollManagerRef }) 
         />
       )}
       <ThreadPanel />
-      <div ref={bottomRef} />
-      {showUnreadButton && (
-        // user must click to jump; no automatic scrolling
-        <button
-          onClick={() => scrollManagerRef.current.scrollToBottom('smooth')}
-          aria-label="Jump to last unread"
-          className="fixed right-4 bottom-24 md:bottom-6 p-3 rounded-full bg-primary-600 text-white shadow-lg"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M19 9l-7 7-7-7"
-            />
-          </svg>
-        </button>
-      )}
-    </div>
+    </>
   );
 };
 

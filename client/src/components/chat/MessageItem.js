@@ -38,7 +38,7 @@ const fetchLinkPreview = async (url) => {
   );
 };
 
-const MessageItem = ({ message, isOwn, onDelete, onReply }) => {
+const MessageItem = React.forwardRef(({ message, isOwn, onDelete, onReply, isHighlighted }, ref) => {
   const { openThread, currentUser, toggleReaction } = useChat();
   const isTouch = typeof window !== 'undefined' && 'ontouchstart' in window;
   const text = message.text || message.content;
@@ -146,7 +146,8 @@ const MessageItem = ({ message, isOwn, onDelete, onReply }) => {
 
   return (
     <div
-      className="relative group"
+      ref={ref}
+      className={`relative group ${isHighlighted ? 'ring-2 ring-blue-400' : ''}`}
       tabIndex={0}
       onKeyDown={handleKeyDown}
       onMouseEnter={handleMouseEnter}
@@ -238,6 +239,6 @@ const MessageItem = ({ message, isOwn, onDelete, onReply }) => {
       )}
     </div>
   );
-};
+});
 
 export default MessageItem;

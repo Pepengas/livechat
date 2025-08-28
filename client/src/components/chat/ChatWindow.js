@@ -9,31 +9,28 @@ import ScrollManager from '../../scroll/ScrollManager';
 import MessageList from './MessageList';
 import MessageInput from './MessageInput';
 import LoadingSpinner from '../common/LoadingSpinner';
-import TypingIndicator from './TypingIndicator';
 
 const ChatWindow = ({ toggleMobileMenu, openUserProfileModal, openGroupInfoModal }) => {
   const { currentUser } = useAuth();
   const {
-    selectedChat, 
-    messages, 
-    fetchMessages, 
-    messageLoading, 
+    selectedChat,
+    messages,
+    fetchMessages,
+    messageLoading,
     typingUsers,
     startTyping,
-    stopTyping
+    stopTyping,
+    markMessageAsRead,
   } = useChat();
   const { isUserOnline } = useSocket();
   
   const [isTyping, setIsTyping] = useState(false);
   const [initialJumpDone, setInitialJumpDone] = useState(false);
   const scrollManagerRef = useRef(new ScrollManager());
-  const containerRef = useRef(null);
   const loadStartedRef = useRef(false);
 
   useEffect(() => {
-    const mgr = scrollManagerRef.current;
-    if (containerRef.current) mgr.attach(containerRef.current);
-    return () => mgr.detach();
+    return () => scrollManagerRef.current.detach();
   }, [selectedChat?._id]);
   
   // Fetch messages when selected chat changes
@@ -79,11 +76,18 @@ const ChatWindow = ({ toggleMobileMenu, openUserProfileModal, openGroupInfoModal
     }
   }, [messages, currentUser._id]);
 
+  // Mark messages as read when at bottom
+  useEffect(() => {
+    if (selectedChat && scrollManagerRef.current.policy.isUserAtBottom) {
+      markMessageAsRead(selectedChat._id);
+    }
+  }, [messages, selectedChat?._id]);
+
   // Dev helper to trace unexpected scrolls
   useEffect(() => {
-    if (process.env.NODE_ENV !== 'production' && containerRef.current) {
+    if (process.env.NODE_ENV !== 'production' && scrollManagerRef.current.container) {
       import('../../debug/hookScrollMethods').then((m) =>
-        m.hookScrollMethods(containerRef.current, 'chat')
+        m.hookScrollMethods(scrollManagerRef.current.container, 'chat')
       );
     }
   }, []);
@@ -270,40 +274,32 @@ const ChatWindow = ({ toggleMobileMenu, openUserProfileModal, openGroupInfoModal
             </div>
           </div>
           
-          {/* Messages */}
-          <div
-            ref={containerRef}
-            className="chat-scroll"
-          >
-            <div className="chat-column">
-              {messageLoading ? (
-                <div className="flex justify-center items-center h-full">
+            {/* Messages */}
+            {messageLoading ? (
+              <div className="chat-scroll">
+                <div className="chat-column flex justify-center items-center h-full">
                   <LoadingSpinner />
                 </div>
-              ) : messages.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full text-gray-500 dark:text-gray-400">
+              </div>
+            ) : messages.length === 0 ? (
+              <div className="chat-scroll">
+                <div className="chat-column flex flex-col items-center justify-center h-full text-gray-500 dark:text-gray-400">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                   </svg>
                   <p className="mt-4 text-lg">No messages yet</p>
                   <p className="text-sm">Send a message to start the conversation</p>
                 </div>
-              ) : (
-                <MessageList
-                  messages={messages}
-                  currentUser={currentUser}
-                  selectedChat={selectedChat}
-                  scrollManagerRef={scrollManagerRef}
-                />
-              )}
-
-              {getTypingText() && (
-                <TypingIndicator text={getTypingText()} />
-              )}
-
-              {/* bottom sentinel removed; ScrollManager handles scrolling */}
-            </div>
-          </div>
+              </div>
+            ) : (
+              <MessageList
+                messages={messages}
+                currentUser={currentUser}
+                selectedChat={selectedChat}
+                scrollManagerRef={scrollManagerRef}
+                typingText={getTypingText()}
+              />
+            )}
 
           {/* Message Input */}
           <div className="border-t border-gray-200 dark:border-gray-600 bg-gray-100 dark:bg-gray-700">
