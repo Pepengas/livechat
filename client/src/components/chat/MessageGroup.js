@@ -19,7 +19,7 @@ const MessageGroup = ({
   prevMessageDate,
   registerMessageRef,
   onReply,
-  scrollToMessage,
+  highlightId,
 }) => {
   if (!group.sender) {
     // system messages
@@ -87,7 +87,7 @@ const MessageGroup = ({
               isOwn={isOwn}
               onDelete={onDelete}
               onReply={() => onReply(m)}
-              scrollToMessage={scrollToMessage}
+              isHighlighted={highlightId === (m._id || m.id)}
             />
           </div>
         </div>
@@ -105,7 +105,7 @@ const MessageGroup = ({
             isOwn={isOwn}
             onDelete={onDelete}
             onReply={() => onReply(m)}
-            scrollToMessage={scrollToMessage}
+            isHighlighted={highlightId === (m._id || m.id)}
           />
         </div>
       );

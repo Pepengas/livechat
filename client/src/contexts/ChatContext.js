@@ -16,6 +16,7 @@ export const ChatProvider = ({ children }) => {
   const [selectedChat, setSelectedChat] = useState(null);
   const [messages, setMessages] = useState([]);
   const [messageCache, setMessageCache] = useState({});
+  const [messagePageInfo, setMessagePageInfo] = useState({});
   const [loading, setLoading] = useState(false);
   const [chatLoading, setChatLoading] = useState(false);
   const [messageLoading, setMessageLoading] = useState(false);
@@ -359,10 +360,15 @@ export const ChatProvider = ({ children }) => {
     setMessageLoading(!cached);
     setError(null);
     try {
-      const data = await getMessages(chatId);
-      setMessages(data);
-      setMessageCache((prev) => ({ ...prev, [chatId]: data }));
-      const lastReadMsg = [...data]
+      const data = await getMessages(chatId, { limit: 50 });
+      const items = [...data.items].reverse();
+      setMessages(items);
+      setMessageCache((prev) => ({ ...prev, [chatId]: items }));
+      setMessagePageInfo((prev) => ({
+        ...prev,
+        [chatId]: { cursor: data.nextCursor, hasMore: data.hasMore },
+      }));
+      const lastReadMsg = [...items]
         .reverse()
         .find((m) => m.readBy.includes(currentUser._id));
       const lastReadAt = lastReadMsg
@@ -375,12 +381,37 @@ export const ChatProvider = ({ children }) => {
       setChats((prev) =>
         prev.map((c) => (c._id === chatId ? { ...c, lastReadAt } : c))
       );
-      return data;
+      return items;
     } catch (err) {
       setError(err.message || 'Failed to fetch messages');
       return cached || [];
     } finally {
       setMessageLoading(false);
+    }
+  };
+
+  const loadOlderMessages = async (chatId) => {
+    const page = messagePageInfo[chatId];
+    if (!page?.hasMore) return [];
+    try {
+      const data = await getMessages(chatId, {
+        before: page.cursor,
+        limit: 50,
+      });
+      const items = [...data.items].reverse();
+      setMessages((prev) => [...items, ...prev]);
+      setMessageCache((prev) => ({
+        ...prev,
+        [chatId]: [...items, ...(prev[chatId] || [])],
+      }));
+      setMessagePageInfo((prev) => ({
+        ...prev,
+        [chatId]: { cursor: data.nextCursor, hasMore: data.hasMore },
+      }));
+      return items;
+    } catch (err) {
+      setError(err.message || 'Failed to fetch messages');
+      return [];
     }
   };
 
@@ -826,7 +857,9 @@ export const ChatProvider = ({ children }) => {
     startReply,
     cancelReply,
     searchUsers: searchUsersCached,
-    searchChats: searchChatsCached
+    searchChats: searchChatsCached,
+    loadOlderMessages,
+    messagePageInfo,
   };
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;
