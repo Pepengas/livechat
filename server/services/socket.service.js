@@ -1,5 +1,7 @@
 const User = require('../models/user.model');
 const Chat = require('../models/chat.model');
+const Message = require('../models/message.model');
+const ConversationParticipant = require('../models/conversationParticipant.model');
 
 /**
  * Socket.IO service for real-time communication
@@ -17,6 +19,7 @@ const socketService = (io) => {
       try {
         // Add user to connected users map
         connectedUsers.set(userData._id, socket.id);
+        socket.userId = userData._id;
         
         // Update user status in database
         await User.findByIdAndUpdate(userData._id, {
@@ -89,6 +92,109 @@ const socketService = (io) => {
     // Handle read messages
     socket.on('mark-read', ({ chatId, userId }) => {
       socket.to(chatId).emit('messages-read', { chatId, userId });
+    });
+
+    socket.on('ack-delivery', async ({ messageId }) => {
+      try {
+        const message = await Message.findById(messageId).populate('chat');
+        if (!message) return;
+        if (message.sender.toString() === socket.userId.toString()) return;
+        if (!message.deliveredTo.find((d) => d.user.toString() === socket.userId.toString())) {
+          message.deliveredTo.push({ user: socket.userId, at: new Date() });
+        }
+        const chat = await Chat.findById(message.chat).select('users');
+        const recipients = chat.users.filter(
+          (u) => u.toString() !== message.sender.toString()
+        );
+        let deliveredAll = false;
+        if (message.deliveredTo.length >= recipients.length) {
+          deliveredAll = true;
+          if (message.status === 'sent') message.status = 'delivered_all';
+        }
+        await message.save();
+        io.to(chat._id.toString()).emit('message-delivered', {
+          messageId: message._id,
+          deliveredTo: message.deliveredTo,
+          deliveredAll,
+        });
+      } catch (err) {
+        console.error('ack-delivery error', err);
+      }
+    });
+
+    socket.on('ack-read', async ({ messageId }) => {
+      try {
+        const message = await Message.findById(messageId).populate('chat');
+        if (!message) return;
+        if (message.sender.toString() === socket.userId.toString()) return;
+        const now = new Date();
+        if (!message.readBy.find((d) => d.user.toString() === socket.userId.toString())) {
+          message.readBy.push({ user: socket.userId, at: now });
+        }
+        const chat = await Chat.findById(message.chat).select('users');
+        const recipients = chat.users.filter(
+          (u) => u.toString() !== message.sender.toString()
+        );
+        let readAll = false;
+        if (message.readBy.length >= recipients.length) {
+          readAll = true;
+          message.status = 'read_all';
+        } else if (
+          message.status === 'sent' &&
+          message.deliveredTo.length >= recipients.length
+        ) {
+          message.status = 'delivered_all';
+        }
+        await message.save();
+        await ConversationParticipant.findOneAndUpdate(
+          { chat: chat._id, user: socket.userId },
+          { lastReadMessage: message._id, lastReadAt: now },
+          { upsert: true }
+        );
+        io.to(chat._id.toString()).emit('message-read', {
+          messageId: message._id,
+          readerId: socket.userId,
+          at: now,
+          readAll,
+        });
+        io.to(chat._id.toString()).emit('participant-last-read', {
+          conversationId: chat._id,
+          userId: socket.userId,
+          lastReadMessageId: message._id,
+          at: now,
+        });
+      } catch (err) {
+        console.error('ack-read error', err);
+      }
+    });
+
+    socket.on('ack-read-up-to', async ({ conversationId, messageId }) => {
+      try {
+        const now = new Date();
+        const messages = await Message.find({
+          chat: conversationId,
+          _id: { $lte: messageId },
+          sender: { $ne: socket.userId },
+          'readBy.user': { $ne: socket.userId },
+        }).sort({ createdAt: 1 });
+        for (const msg of messages) {
+          msg.readBy.push({ user: socket.userId, at: now });
+          await msg.save();
+        }
+        await ConversationParticipant.findOneAndUpdate(
+          { chat: conversationId, user: socket.userId },
+          { lastReadMessage: messageId, lastReadAt: now },
+          { upsert: true }
+        );
+        io.to(conversationId.toString()).emit('participant-last-read', {
+          conversationId,
+          userId: socket.userId,
+          lastReadMessageId: messageId,
+          at: now,
+        });
+      } catch (err) {
+        console.error('ack-read-up-to error', err);
+      }
     });
 
     // Handle user status change
