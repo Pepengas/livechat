@@ -5,9 +5,11 @@ import api from 'services/apiClient';
  * @param {string} chatId - Chat ID
  * @returns {Promise<Array>} List of messages
  */
-export const getMessages = async (chatId) => {
+export const getMessages = async (chatId, { limit = 20, before } = {}, config = {}) => {
   try {
-    const response = await api.get(`/messages/${chatId}`);
+    const params = { chatId, limit };
+    if (before) params.before = before;
+    const response = await api.get('/messages', { params, ...config });
     return response.data;
   } catch (error) {
     throw error.response?.data || { message: 'Failed to fetch messages' };

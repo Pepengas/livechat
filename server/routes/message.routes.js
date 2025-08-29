@@ -52,8 +52,8 @@ router.get('/:id/thread', getThread);
 // Toggle reaction
 router.post('/:id/reactions', toggleReaction);
 
-// Get all messages for a chat
-router.get('/:chatId', getMessages);
+// Get messages for a chat with cursor-based pagination
+router.get('/', getMessages);
 
 // Mark messages as read
 router.put('/read/:chatId', markAsRead);

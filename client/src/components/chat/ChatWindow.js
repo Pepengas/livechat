@@ -4,6 +4,7 @@ import { useChat } from '../../hooks/useChat';
 import { useSocket } from '../../hooks/useSocket';
 import { useDebounce } from '../../hooks/useDebounce';
 import ScrollManager from '../../scroll/ScrollManager';
+import { retainScrollPosition, shouldLoadMore } from '../../utils/messagePagination';
 
 // Components
 import MessageList from './MessageList';
@@ -14,18 +15,22 @@ import TypingIndicator from './TypingIndicator';
 const ChatWindow = ({ toggleMobileMenu, openUserProfileModal, openGroupInfoModal }) => {
   const { currentUser } = useAuth();
   const {
-    selectedChat, 
-    messages, 
-    fetchMessages, 
-    messageLoading, 
+    selectedChat,
+    messages,
+    fetchMessages,
+    loadOlderMessages,
+    messageLoading,
+    loadingMore,
     typingUsers,
     startTyping,
-    stopTyping
+    stopTyping,
+    pagination,
   } = useChat();
   const { isUserOnline } = useSocket();
   
   const [isTyping, setIsTyping] = useState(false);
   const [initialJumpDone, setInitialJumpDone] = useState(false);
+  const [showNewToast, setShowNewToast] = useState(false);
   const scrollManagerRef = useRef(new ScrollManager());
   const containerRef = useRef(null);
   const loadStartedRef = useRef(false);
@@ -76,8 +81,34 @@ const ChatWindow = ({ toggleMobileMenu, openUserProfileModal, openGroupInfoModal
     const mgr = scrollManagerRef.current;
     if (mgr.shouldFollowNewMessage({ isOwn })) {
       mgr.scrollToBottom(isOwn ? 'auto' : 'smooth');
+    } else if (!isOwn) {
+      setShowNewToast(true);
     }
   }, [messages, currentUser._id]);
+
+  // Load older messages when scrolling near top and hide toast at bottom
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const onScroll = () => {
+      const page = pagination[selectedChat?._id];
+      if (
+        selectedChat &&
+        shouldLoadMore({ hasMore: page?.hasMore, loading: loadingMore }) &&
+        el.scrollTop < 150
+      ) {
+        const prev = el.scrollHeight;
+        loadOlderMessages(selectedChat._id).then(() =>
+          retainScrollPosition(el, prev)
+        );
+      }
+      if (scrollManagerRef.current.policy.isUserAtBottom) {
+        setShowNewToast(false);
+      }
+    };
+    el.addEventListener('scroll', onScroll);
+    return () => el.removeEventListener('scroll', onScroll);
+  }, [selectedChat?._id, pagination, loadingMore]);
 
   // Dev helper to trace unexpected scrolls
   useEffect(() => {
@@ -276,6 +307,11 @@ const ChatWindow = ({ toggleMobileMenu, openUserProfileModal, openGroupInfoModal
             className="chat-scroll"
           >
             <div className="chat-column">
+              {loadingMore && (
+                <div className="flex justify-center py-2">
+                  <LoadingSpinner size="small" />
+                </div>
+              )}
               {messageLoading ? (
                 <div className="flex justify-center items-center h-full">
                   <LoadingSpinner />
@@ -311,6 +347,16 @@ const ChatWindow = ({ toggleMobileMenu, openUserProfileModal, openGroupInfoModal
               <MessageInput chatId={selectedChat._id} onTyping={handleTyping} />
             </div>
           </div>
+          {showNewToast && (
+            <div className="fixed bottom-24 inset-x-0 flex justify-center">
+              <button
+                onClick={() => scrollManagerRef.current.scrollToBottom('smooth')}
+                className="bg-primary-600 text-white px-4 py-2 rounded-full shadow-lg"
+              >
+                New messages - Jump to latest
+              </button>
+            </div>
+          )}
       </div>
     );
   };

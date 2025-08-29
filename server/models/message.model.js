@@ -87,6 +87,7 @@ const messageSchema = new mongoose.Schema(
 );
 
 messageSchema.index({ chat: 1, createdAt: 1 });
+messageSchema.index({ chat: 1, createdAt: -1, _id: -1 });
 messageSchema.index({ 'deliveredTo.user': 1 });
 messageSchema.index({ 'readBy.user': 1 });
 
