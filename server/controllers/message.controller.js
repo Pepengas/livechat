@@ -94,33 +94,49 @@ const sendMessage = async (req, res) => {
  */
 const getMessages = async (req, res) => {
   try {
-    const { chatId } = req.params;
-    
-    // Find the chat
+    const { chatId, limit = 20, before } = req.query;
+
+    if (!chatId) {
+      return res.status(400).json({ message: 'chatId is required' });
+    }
+
     const chat = await Chat.findById(chatId);
-    
     if (!chat) {
       return res.status(404).json({ message: 'Chat not found' });
     }
-    
-    // Check if user is part of the chat
+
     if (!chat.users.includes(req.user._id)) {
       return res.status(403).json({ message: 'Not authorized to view these messages' });
     }
 
-    // Get messages for the chat excluding ones deleted for this user or everyone
-    const messagesDocs = await Message.find({
-        chat: chatId,
-        parentMessage: null,
-        deletedForEveryone: { $ne: true },
-        deletedFor: { $ne: req.user._id }
-      })
+    const q = {
+      chat: chatId,
+      parentMessage: null,
+      deletedForEveryone: { $ne: true },
+      deletedFor: { $ne: req.user._id }
+    };
+
+    if (before) {
+      const [createdAt, id] = before.split('_');
+      q.$or = [
+        { createdAt: { $lt: new Date(createdAt) } },
+        { createdAt: new Date(createdAt), _id: { $lt: id } }
+      ];
+    }
+
+    const limitNum = parseInt(limit);
+
+    const docs = await Message.find(q)
       .populate('sender', 'name email avatar')
       .populate('readBy.user', 'name email avatar')
       .populate('deliveredTo.user', 'name email avatar')
-      .sort({ createdAt: 1 });
+      .sort({ createdAt: -1, _id: -1 })
+      .limit(limitNum + 1);
 
-    const ids = messagesDocs.map((m) => m._id);
+    const hasMore = docs.length > limitNum;
+    const items = hasMore ? docs.slice(0, -1) : docs;
+
+    const ids = items.map((m) => m._id);
     const reactions = await Reaction.find({ message: { $in: ids } });
     const reactionMap = {};
     reactions.forEach((r) => {
@@ -129,12 +145,18 @@ const getMessages = async (req, res) => {
       reactionMap[key].push({ emoji: r.emoji, userId: r.user.toString() });
     });
 
-    const messages = messagesDocs.map((m) => ({
+    const messages = items.map((m) => ({
       ...m.toObject(),
       reactions: reactionMap[m._id.toString()] || [],
     }));
 
-    res.json(messages);
+    let nextCursor = null;
+    if (hasMore) {
+      const last = items[items.length - 1];
+      nextCursor = `${last.createdAt.toISOString()}_${last._id.toString()}`;
+    }
+
+    res.json({ items: messages, hasMore, nextCursor });
   } catch (error) {
     console.error('Get messages error:', error);
     res.status(500).json({ message: 'Server error', error: error.message });

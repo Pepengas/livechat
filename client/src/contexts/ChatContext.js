@@ -1,9 +1,10 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import React, { createContext, useState, useEffect, useContext, useRef } from 'react';
 import { getChats, accessChat, createGroupChat, renameGroup, addToGroup, removeFromGroup, leaveGroup } from '../services/chatService';
 import { getMessages, sendMessage, markAsRead, deleteMessage, getThread } from '../services/messageService';
 import { AuthContext } from './AuthContext';
 import { SocketContext } from './SocketContext';
 import api from 'services/apiClient';
+import { mergeMessages } from '../utils/messagePagination';
 
 
 const hasUser = (arr, userId) =>
@@ -31,6 +32,9 @@ export const ChatProvider = ({ children }) => {
   const [replyTo, setReplyTo] = useState(null);
   const [userSearchCache, setUserSearchCache] = useState({});
   const [chatSearchCache, setChatSearchCache] = useState({});
+  const [pagination, setPagination] = useState({});
+  const [loadingMore, setLoadingMore] = useState(false);
+  const messageControllerRef = useRef(null);
 
   const updateMessageReactions = (messageId, reactions) => {
     setMessages((prev) => prev.map((m) => (m._id === messageId ? { ...m, reactions } : m)));
@@ -87,22 +91,27 @@ export const ChatProvider = ({ children }) => {
     socket.on('message-received', (newMessage) => {
       // Update messages if in the same chat
       if (selectedChat && selectedChat._id === newMessage.chat._id) {
-        setMessages((prevMessages) => [...prevMessages, newMessage]);
+        setMessages((prev) =>
+          prev.some((m) => m._id === newMessage._id)
+            ? prev
+            : [...prev, newMessage]
+        );
       } else {
         // Update unread count for this chat
         setUnreadCounts((prev) => ({
           ...prev,
-          [newMessage.chat._id]: (prev[newMessage.chat._id] || 0) + 1
+          [newMessage.chat._id]: (prev[newMessage.chat._id] || 0) + 1,
         }));
       }
 
-      setMessageCache((prev) => ({
-        ...prev,
-        [newMessage.chat._id]: [
-          ...(prev[newMessage.chat._id] || []),
-          newMessage,
-        ],
-      }));
+      setMessageCache((prev) => {
+        const existing = prev[newMessage.chat._id] || [];
+        if (existing.some((m) => m._id === newMessage._id)) return prev;
+        return {
+          ...prev,
+          [newMessage.chat._id]: [...existing, newMessage],
+        };
+      });
 
       if (newMessage.sender._id !== currentUser._id) {
         socket.emit('ack-delivery', { messageId: newMessage._id });
@@ -427,6 +436,10 @@ export const ChatProvider = ({ children }) => {
   };
 
   const fetchMessages = async (chatId) => {
+    if (messageControllerRef.current) {
+      messageControllerRef.current.abort();
+    }
+    messageControllerRef.current = new AbortController();
     const cached = messageCache[chatId];
     if (cached) {
       setMessages(cached);
@@ -436,9 +449,15 @@ export const ChatProvider = ({ children }) => {
     setMessageLoading(!cached);
     setError(null);
     try {
-      const data = await getMessages(chatId);
+      const { items, hasMore, nextCursor } = await getMessages(
+        chatId,
+        { limit: 20 },
+        { signal: messageControllerRef.current.signal }
+      );
+      const data = items.slice().reverse();
       setMessages(data);
       setMessageCache((prev) => ({ ...prev, [chatId]: data }));
+      setPagination((prev) => ({ ...prev, [chatId]: { hasMore, nextCursor } }));
       data.forEach((m) => {
         if (socket && m.sender._id !== currentUser._id) {
           socket.emit('ack-delivery', { messageId: m._id });
@@ -463,6 +482,34 @@ export const ChatProvider = ({ children }) => {
       return cached || [];
     } finally {
       setMessageLoading(false);
+    }
+  };
+
+  const loadOlderMessages = async (chatId) => {
+    const page = pagination[chatId];
+    if (!page?.hasMore || loadingMore) return;
+    setLoadingMore(true);
+    setError(null);
+    try {
+      const { items, hasMore, nextCursor } = await getMessages(
+        chatId,
+        { limit: 20, before: page.nextCursor },
+        { signal: messageControllerRef.current?.signal }
+      );
+      const data = items.slice().reverse();
+      setMessages((prev) => mergeMessages(prev, data));
+      setMessageCache((prev) => ({
+        ...prev,
+        [chatId]: mergeMessages(prev[chatId] || [], data),
+      }));
+      setPagination((prev) => ({
+        ...prev,
+        [chatId]: { hasMore, nextCursor },
+      }));
+    } catch (err) {
+      setError(err.message || 'Failed to fetch messages');
+    } finally {
+      setLoadingMore(false);
     }
   };
 
@@ -895,6 +942,7 @@ export const ChatProvider = ({ children }) => {
     sendThreadMessage,
     fetchChats,
     fetchMessages,
+    loadOlderMessages,
     createOrAccessChat,
     createGroupChat: createNewGroupChat,
     createNewGroupChat,
@@ -910,6 +958,8 @@ export const ChatProvider = ({ children }) => {
     stopTyping,
     getTotalUnreadCount,
     currentUser,
+    loadingMore,
+    pagination,
     startReply,
     cancelReply,
     searchUsers: searchUsersCached,
