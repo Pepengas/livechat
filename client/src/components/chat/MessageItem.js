@@ -1,11 +1,5 @@
 import React from 'react';
-import {
-  ClipboardIcon,
-  TrashIcon,
-  ArrowUturnLeftIcon,
-  ArrowUturnRightIcon,
-  CheckIcon,
-} from '@heroicons/react/24/outline';
+import { ArrowUturnRightIcon, CheckIcon } from '@heroicons/react/24/outline';
 import { CheckIcon as CheckIconSolid } from '@heroicons/react/24/solid';
 import { SocketContext } from '../../contexts/SocketContext';
 import { useChat } from '../../hooks/useChat';
@@ -13,6 +7,7 @@ import linkify, { extractUrls } from '../../utils/linkify';
 import LinkPreviewCard from './LinkPreviewCard';
 import ReactionBar from './ReactionBar';
 import ReactionChips from './ReactionChips';
+import MessageActionsMenu from './MessageActionsMenu';
 
 const previewCache = {};
 
@@ -54,6 +49,7 @@ const MessageItem = React.forwardRef(({ message, isOwn, onDelete, onReply }, ref
   const isTouch = typeof window !== 'undefined' && 'ontouchstart' in window;
   const text = message.text || message.content;
   const [showBar, setShowBar] = React.useState(false);
+  const [showMenu, setShowMenu] = React.useState(false);
   const hoverTimeout = React.useRef();
   const pressTimeout = React.useRef();
   const urls = React.useMemo(() => extractUrls(text), [text]);
@@ -110,7 +106,7 @@ const MessageItem = React.forwardRef(({ message, isOwn, onDelete, onReply }, ref
 
   const handlePointerDown = () => {
     if (isTouch) {
-      pressTimeout.current = setTimeout(openBar, 350);
+      pressTimeout.current = setTimeout(() => setShowMenu(true), 350);
     }
   };
 
@@ -222,14 +218,7 @@ const MessageItem = React.forwardRef(({ message, isOwn, onDelete, onReply }, ref
         />
       )}
 
-      <div className="absolute -top-2 right-0 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-        <button
-          onClick={handleCopy}
-          className="p-1 hover:bg-gray-200 rounded"
-          title="Copy"
-        >
-          <ClipboardIcon className="h-4 w-4" />
-        </button>
+      <div className="absolute -top-2 right-0 flex gap-1">
         {onReply && (
           <button
             onClick={onReply}
@@ -239,24 +228,17 @@ const MessageItem = React.forwardRef(({ message, isOwn, onDelete, onReply }, ref
             <ArrowUturnRightIcon className="h-4 w-4" />
           </button>
         )}
-        {!message.parentMessageId && (
-          <button
-            onClick={() => openThread(message)}
-            className="p-1 hover:bg-gray-200 rounded"
-            title="Reply in thread"
-          >
-            <ArrowUturnLeftIcon className="h-4 w-4" />
-          </button>
-        )}
-        {isOwn && (
-          <button
-            onClick={handleDelete}
-            className="p-1 hover:bg-gray-200 rounded"
-            title="Delete"
-          >
-            <TrashIcon className="h-4 w-4" />
-          </button>
-        )}
+        <MessageActionsMenu
+          isOpen={showMenu}
+          onOpen={() => setShowMenu(true)}
+          onClose={() => setShowMenu(false)}
+          onCopy={handleCopy}
+          onStartThread={() => openThread(message)}
+          onDelete={handleDelete}
+          showStartThread={!message.parentMessageId}
+          showDelete={isOwn}
+          isTouch={isTouch}
+        />
       </div>
 
       {message.threadCount > 0 && !message.parentMessageId && (
