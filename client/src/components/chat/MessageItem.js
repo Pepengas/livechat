@@ -269,8 +269,8 @@ const MessageItem = React.forwardRef(({ message, isOwn, onDelete, onReply }, ref
         </button>
       )}
 
-      {isOwn && (
- <MessageStatusTicks
+     {isOwn && (
+        <MessageStatusTicks
           status={message.status}
           className="absolute -bottom-4 right-0"
         />
