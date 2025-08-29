@@ -244,6 +244,7 @@ const MessageItem = React.forwardRef(({ message, isOwn, onDelete, onReply }, ref
           isOpen={showMenu}
           onOpen={() => setShowMenu(true)}
           onClose={() => setShowMenu(false)}
+          onReply={onReply}
           onCopy={handleCopy}
           onStartThread={() => openThread(message)}
           onDelete={handleDelete}
