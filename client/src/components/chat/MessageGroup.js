@@ -1,5 +1,4 @@
 import React from 'react';
-import { format } from 'date-fns';
 import MessageItem from './MessageItem';
 import TimeDivider from './TimeDivider';
 import linkify from '../../utils/linkify';
@@ -67,8 +66,6 @@ const MessageGroup = ({
     }
     const showAvatar = prevType !== 'message';
     if (showAvatar) {
-      const shortTime = format(msgDate, 'h:mm a');
-      const fullTime = msgDate.toLocaleString();
       elements.push(
         <div key={m.id || m._id} className="message-row grid grid-cols-[48px_1fr] gap-3">
           <img
@@ -79,7 +76,6 @@ const MessageGroup = ({
           <div>
             <div className="flex items-baseline gap-2">
               <span className="font-medium text-sm">{group.sender.name}</span>
-              <time className="text-xs text-gray-500" title={fullTime}>{shortTime}</time>
             </div>
             <MessageItem
               ref={registerMessageRef(m._id || m.id)}

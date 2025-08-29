@@ -1,5 +1,6 @@
 import React from 'react';
 import { ArrowUturnRightIcon } from '@heroicons/react/24/outline';
+import { format } from 'date-fns';
 import { SocketContext } from '../../contexts/SocketContext';
 import { useChat } from '../../hooks/useChat';
 import linkify, { extractUrls } from '../../utils/linkify';
@@ -106,7 +107,7 @@ const MessageItem = React.forwardRef(({ message, isOwn, onDelete, onReply }, ref
 
   const handlePointerDown = () => {
     if (isTouch) {
-      pressTimeout.current = setTimeout(openBar, 350);
+      pressTimeout.current = setTimeout(() => setShowMenu(true), 350);
     }
   };
 
@@ -171,10 +172,14 @@ const MessageItem = React.forwardRef(({ message, isOwn, onDelete, onReply }, ref
     return () => observer.disconnect();
   }, [socket, message._id, message.readBy, currentUser._id, isOwn]);
 
+  const msgDate = new Date(message.createdAt);
+  const shortTime = format(msgDate, 'h:mm a');
+  const fullTime = msgDate.toLocaleString();
+
   return (
     <div
       ref={setRefs}
-      className="relative group"
+      className="relative group pr-12"
       tabIndex={0}
       onKeyDown={handleKeyDown}
       onMouseEnter={handleMouseEnter}
@@ -197,8 +202,15 @@ const MessageItem = React.forwardRef(({ message, isOwn, onDelete, onReply }, ref
           <div key={att.id || att.url}>{renderAttachment(att)}</div>
         ))}
 
+      <div className="mt-1 flex justify-end items-center gap-1 text-xs text-gray-500">
+        <time dateTime={msgDate.toISOString()} title={fullTime}>
+          {shortTime}
+        </time>
+        {isOwn && <MessageStatusTicks status={message.status} />}
+      </div>
+
       {showBar && (
-        <div className="absolute -top-8 left-0">
+        <div className="absolute -top-8 left-0 z-10">
           <ReactionBar
             onSelect={(emoji) =>
               toggleReaction(message._id || message.id, emoji)
@@ -218,7 +230,7 @@ const MessageItem = React.forwardRef(({ message, isOwn, onDelete, onReply }, ref
         />
       )}
 
-      <div className="absolute -top-2 right-0 flex gap-1">
+      <div className="absolute top-1 right-1 flex items-center gap-2 z-20">
         {onReply && (
           <button
             onClick={onReply}
@@ -249,13 +261,6 @@ const MessageItem = React.forwardRef(({ message, isOwn, onDelete, onReply }, ref
           {message.threadCount}{' '}
           {message.threadCount === 1 ? 'reply' : 'replies'} → View thread
         </button>
-      )}
-
-     {isOwn && (
-        <MessageStatusTicks
-          status={message.status}
-          className="absolute -bottom-4 right-0"
-        />
       )}
     </div>
   );
