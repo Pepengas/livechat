@@ -9,6 +9,7 @@ const {
   removeFromGroup,
   leaveGroup,
 } = require('../controllers/chat.controller');
+const { ackReadUpTo, getLastRead } = require('../controllers/message.controller');
 const { protect } = require('../middleware/auth.middleware');
 
 // All routes are protected
@@ -19,6 +20,12 @@ router.post('/', accessChat);
 
 // Get all chats for a user
 router.get('/', getChats);
+
+// Bulk read up to
+router.post('/:id/ack-read-up-to', ackReadUpTo);
+
+// Get last read positions
+router.get('/:id/last-read', getLastRead);
 
 // Create a group chat
 router.post('/group', createGroupChat);

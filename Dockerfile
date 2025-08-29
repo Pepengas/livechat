@@ -1,6 +1,7 @@
 # Base image
 FROM node:18-alpine AS base
-ENV NODE_OPTIONS="--max-old-space-size=512"
+# Allow more memory for Node processes during build to avoid OOM errors
+ENV NODE_OPTIONS="--max-old-space-size=2048"
 WORKDIR /app
 
 # Install root dependencies
