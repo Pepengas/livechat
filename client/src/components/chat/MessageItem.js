@@ -106,7 +106,7 @@ const MessageItem = React.forwardRef(({ message, isOwn, onDelete, onReply }, ref
 
   const handlePointerDown = () => {
     if (isTouch) {
-      pressTimeout.current = setTimeout(() => setShowMenu(true), 350);
+      pressTimeout.current = setTimeout(openBar, 350);
     }
   };
 
