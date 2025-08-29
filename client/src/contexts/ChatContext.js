@@ -59,6 +59,11 @@ export const ChatProvider = ({ children }) => {
     setReplyTo(null);
   };
 
+  // Exit reply mode when switching chats
+  useEffect(() => {
+    setReplyTo(null);
+  }, [selectedChat?._id]);
+
   // Fetch all chats when authenticated
   useEffect(() => {
     if (isAuthenticated) {
@@ -202,6 +207,12 @@ export const ChatProvider = ({ children }) => {
           (msg) => msg._id !== messageId
         ),
       }));
+
+      if (replyTo && (replyTo._id === messageId || replyTo.id === messageId)) {
+        setReplyTo((prev) =>
+          prev ? { ...prev, content: '', text: '', isUnavailable: true } : prev
+        );
+      }
 
       // Update chat list with new latest message
       setChats((prevChats) => {
@@ -404,7 +415,7 @@ export const ChatProvider = ({ children }) => {
       socket.off('message:reactionUpdated');
       socket.off('thread:messageCreated');
     };
-  }, [socket, selectedChat, currentUser, activeThreadParent]);
+  }, [socket, selectedChat, currentUser, activeThreadParent, replyTo]);
 
   const fetchChats = async () => {
     setChatLoading(true);

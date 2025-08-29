@@ -225,6 +225,12 @@ const MessageInput = ({ chatId, onTyping, onInsertMention }) => {
       }
       return;
     }
+    if (e.key === 'Escape' && replyTo) {
+      e.preventDefault();
+      cancelReply();
+      setTimeout(() => inputRef.current?.focus(), 0);
+      return;
+    }
     if (e.altKey && e.key === 'ArrowUp') {
       e.preventDefault();
       const last = [...messages].reverse().find(m => m.sender._id !== currentUser._id);
@@ -276,18 +282,32 @@ const MessageInput = ({ chatId, onTyping, onInsertMention }) => {
   };
 
   return (
-    <div className="py-3 relative">
+    <div className={`py-3 relative ${replyTo ? 'pt-12' : ''}`}>
       {replyTo && (
-        <div className="mb-2 flex items-center justify-between bg-gray-200 dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-md px-3 py-2">
-          <div className="overflow-hidden">
-            <div className="text-xs text-gray-500">
-              {replyTo.sender?.name || 'Unknown'}
+        <div
+          className="absolute top-0 left-0 right-0 flex h-10 items-center justify-between rounded-md border border-gray-300 dark:border-gray-500 bg-gray-100 dark:bg-gray-700 px-3"
+        >
+          {replyTo.isUnavailable ? (
+            <div className="text-sm text-gray-500">Original message unavailable</div>
+          ) : (
+            <div className="overflow-hidden">
+              <div className="text-xs text-gray-500">
+                {replyTo.sender?.name || 'Unknown'}
+              </div>
+              <div className="text-sm truncate max-w-xs">
+                {replyTo.content || replyTo.text || ''}
+              </div>
             </div>
-            <div className="text-sm truncate max-w-xs">
-              {replyTo.content || replyTo.text || ''}
-            </div>
-          </div>
-          <button onClick={cancelReply} className="ml-2 text-gray-600">
+          )}
+          <button
+            onClick={() => {
+              cancelReply();
+              inputRef.current?.focus();
+            }}
+            aria-label="Cancel reply"
+            tabIndex={2}
+            className="ml-2 text-gray-600"
+          >
             &times;
           </button>
         </div>
@@ -320,11 +340,12 @@ const MessageInput = ({ chatId, onTyping, onInsertMention }) => {
       
       {/* Message input form */}
       <form onSubmit={handleSubmit} className="flex items-end gap-2">
-        <button 
+        <button
           type="button"
           onClick={() => fileInputRef.current.click()}
           className="p-2 text-gray-500 dark:text-gray-400 hover:text-primary-600 focus:outline-none"
           aria-label="Attach file"
+          tabIndex={-1}
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
@@ -347,6 +368,7 @@ const MessageInput = ({ chatId, onTyping, onInsertMention }) => {
           onKeyUp={handleCaretChange}
           onClick={handleCaretChange}
           placeholder="Message"
+          tabIndex={1}
           className="flex-1 px-3 py-2 rounded-md bg-white dark:bg-gray-800 dark:text-gray-100 border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-primary-500"
         />
         
@@ -355,6 +377,7 @@ const MessageInput = ({ chatId, onTyping, onInsertMention }) => {
           className="p-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
           disabled={message === '' && attachments.length === 0}
           aria-label="Send message"
+          tabIndex={3}
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
