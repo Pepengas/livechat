@@ -34,10 +34,21 @@ const messageSchema = new mongoose.Schema(
       type: Number,
       default: 0
     },
+    status: {
+      type: String,
+      enum: ['sent', 'delivered_all', 'read_all'],
+      default: 'sent'
+    },
+    deliveredTo: [
+      {
+        user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        at: { type: Date, default: Date.now }
+      }
+    ],
     readBy: [
       {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User'
+        user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        at: { type: Date, default: Date.now }
       }
     ],
     attachments: [
@@ -74,6 +85,10 @@ const messageSchema = new mongoose.Schema(
     timestamps: true
   }
 );
+
+messageSchema.index({ chat: 1, createdAt: 1 });
+messageSchema.index({ 'deliveredTo.user': 1 });
+messageSchema.index({ 'readBy.user': 1 });
 
 const Message = mongoose.model('Message', messageSchema);
 

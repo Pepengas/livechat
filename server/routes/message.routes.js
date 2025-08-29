@@ -4,6 +4,8 @@ const {
   sendMessage,
   getMessages,
   markAsRead,
+  ackDelivery,
+  ackRead,
   deleteMessage,
   searchMessages,
   uploadAttachments,
@@ -37,6 +39,12 @@ router.post('/upload', upload.array('files'), uploadAttachments);
 
 // Send a new message
 router.post('/', sendMessage);
+
+// Acknowledge delivery
+router.post('/:id/ack-delivery', ackDelivery);
+
+// Acknowledge read for a single message
+router.post('/:id/ack-read', ackRead);
 
 // Get a message thread
 router.get('/:id/thread', getThread);
