@@ -1,6 +1,5 @@
 import React from 'react';
-import { ArrowUturnRightIcon, CheckIcon } from '@heroicons/react/24/outline';
-import { CheckIcon as CheckIconSolid } from '@heroicons/react/24/solid';
+import { ArrowUturnRightIcon } from '@heroicons/react/24/outline';
 import { SocketContext } from '../../contexts/SocketContext';
 import { useChat } from '../../hooks/useChat';
 import linkify, { extractUrls } from '../../utils/linkify';
@@ -8,6 +7,7 @@ import LinkPreviewCard from './LinkPreviewCard';
 import ReactionBar from './ReactionBar';
 import ReactionChips from './ReactionChips';
 import MessageActionsMenu from './MessageActionsMenu';
+import MessageStatusTicks from './MessageStatusTicks';
 
 const previewCache = {};
 
