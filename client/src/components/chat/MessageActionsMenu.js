@@ -72,7 +72,9 @@ const MessageActionsMenu = ({
     onClose();
   };
 
-  const menuButtonClass = isTouch ? '' : 'opacity-0 group-hover:opacity-100';
+  const menuButtonClass = isTouch
+    ? 'hidden'
+    : 'opacity-0 group-hover:opacity-100';
 
   return (
     <div className={`relative ${menuButtonClass} transition-opacity`}>
