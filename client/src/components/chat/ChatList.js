@@ -3,6 +3,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { useChat } from '../../hooks/useChat';
 import { useSocket } from '../../hooks/useSocket';
 import { formatDistanceToNow } from 'date-fns';
+import MessageStatusTicks from './MessageStatusTicks';
 
 const ChatList = ({ chats, openUserProfileModal }) => {
   const { currentUser } = useAuth();
@@ -101,9 +102,17 @@ const ChatList = ({ chats, openUserProfileModal }) => {
                   </p>
                 </div>
                 <div className="flex items-center justify-between mt-1">
-                  <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
-                    {getLatestMessagePreview(chat)}
-                  </p>
+                  <div className="flex items-center min-w-0">
+                    {chat.latestMessage?.sender._id === currentUser._id && (
+                      <MessageStatusTicks
+                        status={chat.latestMessage.status}
+                        className="mr-1"
+                      />
+                    )}
+                    <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
+                      {getLatestMessagePreview(chat)}
+                    </p>
+                  </div>
                   {unreadCount > 0 && (
                     <span className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-primary-600 text-xs font-medium text-white">
                       {unreadCount}
