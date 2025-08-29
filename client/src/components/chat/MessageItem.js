@@ -9,6 +9,12 @@ import ReactionChips from './ReactionChips';
 import MessageActionsMenu from './MessageActionsMenu';
 import MessageStatusTicks from './MessageStatusTicks';
 
+const HOVER_DELAY_MS = 450;
+const HOVER_TOLERANCE_PX = 8;
+const CLOSE_GRACE_MS = 150;
+const COOLDOWN_MS = 300;
+const LONGPRESS_DELAY_MS = 500;
+
 const previewCache = {};
 
 const fetchLinkPreview = async (url) => {
@@ -37,7 +43,7 @@ const fetchLinkPreview = async (url) => {
 };
 
 const MessageItem = React.forwardRef(({ message, isOwn, onDelete, onReply }, ref) => {
-  const { openThread, currentUser, toggleReaction } = useChat();
+  const { openThread, currentUser, toggleReaction, replyTo } = useChat();
   const socket = React.useContext(SocketContext);
   const containerRef = React.useRef(null);
   const setRefs = (el) => {
@@ -52,6 +58,10 @@ const MessageItem = React.forwardRef(({ message, isOwn, onDelete, onReply }, ref
   const [showMenu, setShowMenu] = React.useState(false);
   const hoverTimeout = React.useRef();
   const pressTimeout = React.useRef();
+  const closeTimeout = React.useRef();
+  const cooldownRef = React.useRef(false);
+  const pointerStart = React.useRef({ x: 0, y: 0 });
+  const hovering = React.useRef(false);
   const urls = React.useMemo(() => extractUrls(text), [text]);
   const firstUrl = urls[0];
   const [preview, setPreview] = React.useState(null);
@@ -79,11 +89,57 @@ const MessageItem = React.forwardRef(({ message, isOwn, onDelete, onReply }, ref
     };
   }, [firstUrl]);
 
-  const openBar = () => setShowBar(true);
-  const closeBar = () => setShowBar(false);
+  const openBar = () => {
+    if (showMenu || replyTo || cooldownRef.current) return;
+    setShowBar(true);
+    setTimeout(() => {
+      containerRef.current
+        ?.querySelector('[role="menuitem"]')
+        ?.focus();
+    }, 0);
+  };
+  const closeBar = () => {
+    if (!showBar) return;
+    setShowBar(false);
+    cooldownRef.current = true;
+    setTimeout(() => {
+      cooldownRef.current = false;
+    }, COOLDOWN_MS);
+  };
+
+  const cancelHover = React.useCallback(() => {
+    hovering.current = false;
+    clearTimeout(hoverTimeout.current);
+    window.removeEventListener('scroll', cancelHover, true);
+    document.removeEventListener('selectionchange', cancelHover);
+  }, []);
+
+  const startHover = (e) => {
+    if (isTouch || showBar || showMenu || replyTo || cooldownRef.current) return;
+    pointerStart.current = { x: e.clientX, y: e.clientY };
+    hovering.current = true;
+    hoverTimeout.current = setTimeout(() => {
+      hovering.current = false;
+      cancelHover();
+      openBar();
+    }, HOVER_DELAY_MS);
+    window.addEventListener('scroll', cancelHover, true);
+    document.addEventListener('selectionchange', cancelHover);
+  };
+
+  const scheduleClose = () => {
+    clearTimeout(closeTimeout.current);
+    closeTimeout.current = setTimeout(() => {
+      closeBar();
+    }, CLOSE_GRACE_MS);
+  };
+
+  const cancelClose = () => {
+    clearTimeout(closeTimeout.current);
+  };
 
   const handleKeyDown = (e) => {
-    if (e.key.toLowerCase() === 'r') {
+    if (e.key === ':') {
       e.preventDefault();
       openBar();
     } else if (e.key === 'Escape') {
@@ -91,22 +147,34 @@ const MessageItem = React.forwardRef(({ message, isOwn, onDelete, onReply }, ref
     }
   };
 
-  const handleMouseEnter = () => {
+  const handleMouseEnter = (e) => {
     if (!isTouch) {
-      hoverTimeout.current = setTimeout(openBar, 80);
+      cancelClose();
+      startHover(e);
+    }
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isTouch && hovering.current) {
+      const dx = e.clientX - pointerStart.current.x;
+      const dy = e.clientY - pointerStart.current.y;
+      if (Math.hypot(dx, dy) > HOVER_TOLERANCE_PX) {
+        cancelHover();
+        startHover(e);
+      }
     }
   };
 
   const handleMouseLeave = () => {
     if (!isTouch) {
-      clearTimeout(hoverTimeout.current);
-      closeBar();
+      cancelHover();
+      scheduleClose();
     }
   };
 
-  const handlePointerDown = () => {
+  const handlePointerDown = (e) => {
     if (isTouch) {
-      pressTimeout.current = setTimeout(() => setShowMenu(true), 350);
+      pressTimeout.current = setTimeout(() => openBar(), LONGPRESS_DELAY_MS);
     }
   };
 
@@ -171,6 +239,15 @@ const MessageItem = React.forwardRef(({ message, isOwn, onDelete, onReply }, ref
     return () => observer.disconnect();
   }, [socket, message._id, message.readBy, currentUser._id, isOwn]);
 
+  React.useEffect(() => () => cancelHover(), [cancelHover]);
+
+  React.useEffect(() => {
+    if (showMenu || replyTo) {
+      cancelHover();
+      closeBar();
+    }
+  }, [showMenu, replyTo, cancelHover]);
+
   const msgDate = new Date(message.createdAt);
   const shortTime = format(msgDate, 'h:mm a');
   const fullTime = msgDate.toLocaleString();
@@ -182,6 +259,7 @@ const MessageItem = React.forwardRef(({ message, isOwn, onDelete, onReply }, ref
       tabIndex={0}
       onKeyDown={handleKeyDown}
       onMouseEnter={handleMouseEnter}
+      onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       onPointerDown={handlePointerDown}
       onPointerUp={handlePointerUp}
