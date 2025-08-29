@@ -297,7 +297,9 @@ const MessageItem = React.forwardRef(({ message, isOwn, onDelete, onReply, scrol
   return (
     <div
       ref={setRefs}
-      className="relative group pr-12 select-none"
+      className={`relative group select-none md:pr-12 ${
+        isOwn ? 'self-end ml-auto max-w-[95%]' : ''
+      }`}
       style={{ WebkitTouchCallout: 'none' }}
       tabIndex={0}
       onKeyDown={handleKeyDown}
