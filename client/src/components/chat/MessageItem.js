@@ -1,5 +1,4 @@
 import React from 'react';
-import { ArrowUturnRightIcon } from '@heroicons/react/24/outline';
 import { format } from 'date-fns';
 import { SocketContext } from '../../contexts/SocketContext';
 import { useChat } from '../../hooks/useChat';
@@ -231,19 +230,11 @@ const MessageItem = React.forwardRef(({ message, isOwn, onDelete, onReply }, ref
       )}
 
       <div className="absolute top-1 right-1 flex items-center gap-2 z-20">
-        {onReply && (
-          <button
-            onClick={onReply}
-            className="p-1 hover:bg-gray-200 rounded"
-            title="Reply"
-          >
-            <ArrowUturnRightIcon className="h-4 w-4" />
-          </button>
-        )}
         <MessageActionsMenu
           isOpen={showMenu}
           onOpen={() => setShowMenu(true)}
           onClose={() => setShowMenu(false)}
+          onReply={onReply}
           onCopy={handleCopy}
           onStartThread={() => openThread(message)}
           onDelete={handleDelete}

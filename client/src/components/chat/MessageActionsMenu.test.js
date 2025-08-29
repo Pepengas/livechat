@@ -4,13 +4,14 @@ import '@testing-library/jest-dom';
 import MessageActionsMenu from './MessageActionsMenu';
 
 describe('MessageActionsMenu', () => {
-  function Wrapper() {
+  function Wrapper({ onReply = () => {} }) {
     const [open, setOpen] = React.useState(false);
     return (
       <MessageActionsMenu
         isOpen={open}
         onOpen={() => setOpen(true)}
         onClose={() => setOpen(false)}
+        onReply={onReply}
         onCopy={() => {}}
         onStartThread={() => {}}
         onDelete={() => {}}
@@ -36,6 +37,17 @@ describe('MessageActionsMenu', () => {
     fireEvent.click(button);
     fireEvent.keyDown(document, { key: 'Escape' });
     expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+  });
+
+  test('reply is first option and triggers callback', () => {
+    const handleReply = jest.fn();
+    render(<Wrapper onReply={handleReply} />);
+    const button = screen.getByLabelText(/more options/i);
+    fireEvent.click(button);
+    const items = screen.getAllByRole('menuitem');
+    expect(items[0]).toHaveTextContent(/reply/i);
+    fireEvent.click(items[0]);
+    expect(handleReply).toHaveBeenCalled();
   });
 });
 

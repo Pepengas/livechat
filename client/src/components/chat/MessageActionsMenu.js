@@ -1,10 +1,17 @@
 import React from 'react';
-import { EllipsisVerticalIcon, ClipboardIcon, ArrowUturnLeftIcon, TrashIcon } from '@heroicons/react/24/outline';
+import {
+  EllipsisVerticalIcon,
+  ClipboardIcon,
+  ArrowUturnLeftIcon,
+  ArrowUturnRightIcon,
+  TrashIcon,
+} from '@heroicons/react/24/outline';
 
 const MessageActionsMenu = ({
   isOpen,
   onOpen,
   onClose,
+  onReply,
   onCopy,
   onStartThread,
   onDelete,
@@ -96,6 +103,13 @@ const MessageActionsMenu = ({
             "text-gray-700 dark:text-gray-200 py-1"
           }
         >
+          <button
+            role="menuitem"
+            onClick={handleAction(onReply)}
+            className="flex w-full items-center gap-2 px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-600"
+          >
+            <ArrowUturnRightIcon className="h-4 w-4" /> Reply
+          </button>
           <button
             role="menuitem"
             onClick={handleAction(onCopy)}
