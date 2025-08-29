@@ -6,6 +6,14 @@ import {
   ArrowUturnRightIcon,
   TrashIcon,
 } from '@heroicons/react/24/outline';
+import {
+  useFloating,
+  offset,
+  flip,
+  shift,
+  autoUpdate,
+} from '@floating-ui/react-dom';
+import { createPortal } from 'react-dom';
 
 const MessageActionsMenu = ({
   isOpen,
@@ -20,7 +28,15 @@ const MessageActionsMenu = ({
   isTouch,
 }) => {
   const menuRef = React.useRef(null);
-  const buttonRef = React.useRef(null);
+  const { x, y, strategy, refs } = useFloating({
+    placement: 'bottom-end',
+    middleware: [
+      offset(({ rects }) => -rects.reference.height),
+      flip(),
+      shift(),
+    ],
+    whileElementsMounted: isOpen ? autoUpdate : undefined,
+  });
 
   const toggleMenu = () => {
     if (isOpen) onClose();
@@ -29,17 +45,6 @@ const MessageActionsMenu = ({
 
   React.useEffect(() => {
     if (!isOpen) return;
-
-    const handleClickOutside = (e) => {
-      if (
-        menuRef.current &&
-        !menuRef.current.contains(e.target) &&
-        buttonRef.current &&
-        !buttonRef.current.contains(e.target)
-      ) {
-        onClose();
-      }
-    };
 
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') {
@@ -63,13 +68,11 @@ const MessageActionsMenu = ({
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
     document.addEventListener('keydown', handleKeyDown);
     const first = menuRef.current.querySelector('button');
     first && first.focus();
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, [isOpen, onClose]);
@@ -86,57 +89,75 @@ const MessageActionsMenu = ({
   return (
     <div className={`relative ${menuButtonClass} transition-opacity`}>
       <button
-        ref={buttonRef}
+        ref={refs.setReference}
         aria-label="More options"
+        aria-haspopup="menu"
+        aria-expanded={isOpen}
         className="p-1 hover:bg-gray-200 rounded"
         onClick={toggleMenu}
       >
         <EllipsisVerticalIcon className="h-4 w-4" />
       </button>
-      {isOpen && (
-        <div
-          ref={menuRef}
-          role="menu"
-          aria-label="Message actions"
-          className={
-            "absolute z-30 right-0 mt-1 w-32 rounded-md shadow-lg bg-white dark:bg-gray-800 " +
-            "text-gray-700 dark:text-gray-200 py-1"
-          }
-        >
-          <button
-            role="menuitem"
-            onClick={handleAction(onReply)}
-            className="flex w-full items-center gap-2 px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-600"
-          >
-            <ArrowUturnRightIcon className="h-4 w-4" /> Reply
-          </button>
-          <button
-            role="menuitem"
-            onClick={handleAction(onCopy)}
-            className="flex w-full items-center gap-2 px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-600"
-          >
-            <ClipboardIcon className="h-4 w-4" /> Copy
-          </button>
-          {showStartThread && (
-            <button
-              role="menuitem"
-              onClick={handleAction(onStartThread)}
-              className="flex w-full items-center gap-2 px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-600"
+      {isOpen &&
+        createPortal(
+          <>
+            <div
+              data-testid="backdrop"
+              className="fixed inset-0"
+              style={{ zIndex: 'calc(var(--z-popover, 1000) - 1)' }}
+              onClick={onClose}
+            />
+            <div
+              ref={(node) => {
+                menuRef.current = node;
+                refs.setFloating(node);
+              }}
+              role="menu"
+              aria-label="Message actions"
+              style={{
+                position: strategy,
+                top: y ?? 0,
+                left: x ?? 0,
+                zIndex: 'var(--z-popover, 1000)',
+              }}
+              className="w-32 rounded-md shadow-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 py-1"
             >
-              <ArrowUturnLeftIcon className="h-4 w-4" /> Start Thread
-            </button>
-          )}
-          {showDelete && (
-            <button
-              role="menuitem"
-              onClick={handleAction(onDelete)}
-              className="flex w-full items-center gap-2 px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-600"
-            >
-              <TrashIcon className="h-4 w-4" /> Delete
-            </button>
-          )}
-        </div>
-      )}
+              <button
+                role="menuitem"
+                onClick={handleAction(onReply)}
+                className="flex w-full items-center gap-2 px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-600"
+              >
+                <ArrowUturnRightIcon className="h-4 w-4" /> Reply
+              </button>
+              <button
+                role="menuitem"
+                onClick={handleAction(onCopy)}
+                className="flex w-full items-center gap-2 px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-600"
+              >
+                <ClipboardIcon className="h-4 w-4" /> Copy
+              </button>
+              {showStartThread && (
+                <button
+                  role="menuitem"
+                  onClick={handleAction(onStartThread)}
+                  className="flex w-full items-center gap-2 px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-600"
+                >
+                  <ArrowUturnLeftIcon className="h-4 w-4" /> Start Thread
+                </button>
+              )}
+              {showDelete && (
+                <button
+                  role="menuitem"
+                  onClick={handleAction(onDelete)}
+                  className="flex w-full items-center gap-2 px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-600"
+                >
+                  <TrashIcon className="h-4 w-4" /> Delete
+                </button>
+              )}
+            </div>
+          </>,
+          document.body
+        )}
     </div>
   );
 };

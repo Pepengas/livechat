@@ -27,7 +27,7 @@ describe('MessageActionsMenu', () => {
     const button = screen.getByLabelText(/more options/i);
     fireEvent.click(button);
     expect(screen.getByRole('menu')).toBeInTheDocument();
-    fireEvent.mouseDown(document.body);
+    fireEvent.click(screen.getByTestId('backdrop'));
     expect(screen.queryByRole('menu')).not.toBeInTheDocument();
   });
 
