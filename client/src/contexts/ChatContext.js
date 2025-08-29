@@ -276,7 +276,7 @@ export const ChatProvider = ({ children }) => {
               : m
           );
         }
-        return updated;
+     return updated;
       });
       setChats((prev) =>
         prev.map((chat) => {

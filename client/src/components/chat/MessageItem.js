@@ -4,6 +4,7 @@ import {
   TrashIcon,
   ArrowUturnLeftIcon,
   ArrowUturnRightIcon,
+  CheckIcon,
 } from '@heroicons/react/24/outline';
 import MessageStatusTicks from './MessageStatusTicks';
 import { SocketContext } from '../../contexts/SocketContext';
@@ -268,7 +269,7 @@ const MessageItem = React.forwardRef(({ message, isOwn, onDelete, onReply }, ref
         </button>
       )}
 
-      {isOwn && (
+     {isOwn && (
         <MessageStatusTicks
           status={message.status}
           className="absolute -bottom-4 right-0"
