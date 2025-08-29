@@ -251,22 +251,11 @@ const MessageItem = React.forwardRef(({ message, isOwn, onDelete, onReply }, ref
         </button>
       )}
 
-      {isOwn && (
-        <div className="absolute -bottom-4 right-0 flex text-gray-500">
-          {message.status === 'sent' && <CheckIcon className="h-4 w-4" />}
-          {message.status === 'delivered_all' && (
-            <>
-              <CheckIcon className="h-4 w-4" />
-              <CheckIcon className="h-4 w-4 -ml-1" />
-            </>
-          )}
-          {message.status === 'read_all' && (
-            <div className="flex text-blue-600">
-              <CheckIconSolid className="h-4 w-4" />
-              <CheckIconSolid className="h-4 w-4 -ml-1" />
-            </div>
-          )}
-        </div>
+     {isOwn && (
+        <MessageStatusTicks
+          status={message.status}
+          className="absolute -bottom-4 right-0"
+        />
       )}
     </div>
   );

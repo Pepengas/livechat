@@ -228,6 +228,22 @@ export const ChatProvider = ({ children }) => {
         }
         return updated;
       });
+      setChats((prev) =>
+        prev.map((chat) =>
+          chat.latestMessage && chat.latestMessage._id === messageId
+            ? {
+                ...chat,
+                latestMessage: {
+                  ...chat.latestMessage,
+                  deliveredTo,
+                  status: deliveredAll
+                    ? 'delivered_all'
+                    : chat.latestMessage.status,
+                },
+              }
+            : chat
+        )
+      );
     });
 
     // Message read
@@ -260,8 +276,29 @@ export const ChatProvider = ({ children }) => {
               : m
           );
         }
-        return updated;
+     return updated;
       });
+      setChats((prev) =>
+        prev.map((chat) => {
+          if (chat.latestMessage && chat.latestMessage._id === messageId) {
+            const existing = chat.latestMessage.readBy || [];
+            const already = hasUser(existing, readerId);
+            return {
+              ...chat,
+              latestMessage: {
+                ...chat.latestMessage,
+                readBy: already
+                  ? existing
+                  : [...existing, { user: { _id: readerId }, at }],
+                status: readAll
+                  ? 'read_all'
+                  : chat.latestMessage.status,
+              },
+            };
+          }
+          return chat;
+        })
+      );
     });
 
     // User avatar updated
