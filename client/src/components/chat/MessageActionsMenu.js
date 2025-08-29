@@ -14,6 +14,7 @@ import {
   autoUpdate,
 } from '@floating-ui/react-dom';
 import { createPortal } from 'react-dom';
+import { DEFAULT_EMOJIS } from './ReactionBar';
 
 const MessageActionsMenu = ({
   isOpen,
@@ -26,6 +27,9 @@ const MessageActionsMenu = ({
   showStartThread,
   showDelete,
   isTouch,
+  showReactions = false,
+  onReact,
+  referenceRef,
 }) => {
   const menuRef = React.useRef(null);
   const { x, y, strategy, refs } = useFloating({
@@ -37,6 +41,12 @@ const MessageActionsMenu = ({
     ],
     whileElementsMounted: isOpen ? autoUpdate : undefined,
   });
+
+  React.useEffect(() => {
+    if (referenceRef?.current) {
+      refs.setReference(referenceRef.current);
+    }
+  }, [referenceRef, refs]);
 
   const toggleMenu = () => {
     if (isOpen) onClose();
@@ -89,7 +99,7 @@ const MessageActionsMenu = ({
   return (
     <div className={`relative ${menuButtonClass} transition-opacity`}>
       <button
-        ref={refs.setReference}
+        ref={referenceRef ? undefined : refs.setReference}
         aria-label="More options"
         aria-haspopup="menu"
         aria-expanded={isOpen}
@@ -120,8 +130,22 @@ const MessageActionsMenu = ({
                 left: x ?? 0,
                 zIndex: 'var(--z-popover, 1000)',
               }}
-              className="w-32 rounded-md shadow-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 py-1"
+              className="w-40 rounded-md shadow-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 py-1"
             >
+              {showReactions && (
+                <div className="flex justify-center gap-1 px-2 pb-2 border-b border-gray-200 dark:border-gray-700">
+                  {DEFAULT_EMOJIS.map((emoji) => (
+                    <button
+                      key={emoji}
+                      aria-label={`React with ${emoji}`}
+                      onClick={handleAction(() => onReact(emoji))}
+                      className="w-9 h-9 flex items-center justify-center text-xl hover:scale-110 transition-transform"
+                    >
+                      {emoji}
+                    </button>
+                  ))}
+                </div>
+              )}
               <button
                 role="menuitem"
                 onClick={handleAction(onReply)}
@@ -154,6 +178,13 @@ const MessageActionsMenu = ({
                   <TrashIcon className="h-4 w-4" /> Delete
                 </button>
               )}
+              <button
+                role="menuitem"
+                onClick={onClose}
+                className="flex w-full items-center gap-2 px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-600"
+              >
+                Cancel
+              </button>
             </div>
           </>,
           document.body

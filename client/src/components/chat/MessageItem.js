@@ -57,7 +57,6 @@ const MessageItem = React.forwardRef(({ message, isOwn, onDelete, onReply, scrol
   const [showBar, setShowBar] = React.useState(false);
   const [showMenu, setShowMenu] = React.useState(false);
   const hoverTimeout = React.useRef();
-  const pressTimeout = React.useRef();
   const closeTimeout = React.useRef();
   const cooldownRef = React.useRef(false);
   const pointerStart = React.useRef({ x: 0, y: 0 });
@@ -91,6 +90,10 @@ const MessageItem = React.forwardRef(({ message, isOwn, onDelete, onReply, scrol
 
   const openBar = () => {
     if (showMenu || replyTo || cooldownRef.current) return;
+    if (isTouch) {
+      setShowMenu(true);
+      return;
+    }
     setShowBar(true);
     setTimeout(() => {
       containerRef.current
@@ -172,17 +175,56 @@ const MessageItem = React.forwardRef(({ message, isOwn, onDelete, onReply, scrol
     }
   };
 
-  const handlePointerDown = (e) => {
-    if (isTouch) {
-      pressTimeout.current = setTimeout(() => openBar(), LONGPRESS_DELAY_MS);
-    }
-  };
+  React.useEffect(() => {
+    if (!isTouch) return;
+    const el = containerRef.current;
+    if (!el) return;
+    let timer;
+    const cancel = () => {
+      clearTimeout(timer);
+      window.removeEventListener('scroll', cancel, true);
+    };
+    const handleTouchStart = (e) => {
+      if (showMenu || replyTo) return;
+      pointerStart.current = {
+        x: e.touches[0].clientX,
+        y: e.touches[0].clientY,
+      };
+      timer = setTimeout(() => {
+        e.preventDefault();
+        openBar();
+      }, LONGPRESS_DELAY_MS);
+      window.addEventListener('scroll', cancel, true);
+    };
+    const handleTouchMove = (e) => {
+      const dx = e.touches[0].clientX - pointerStart.current.x;
+      const dy = e.touches[0].clientY - pointerStart.current.y;
+      if (Math.hypot(dx, dy) > HOVER_TOLERANCE_PX) {
+        cancel();
+      }
+    };
+    const handleTouchEnd = () => cancel();
+    el.addEventListener('touchstart', handleTouchStart, { passive: false });
+    el.addEventListener('touchmove', handleTouchMove, { passive: false });
+    el.addEventListener('touchend', handleTouchEnd);
+    el.addEventListener('touchcancel', handleTouchEnd);
+    return () => {
+      cancel();
+      el.removeEventListener('touchstart', handleTouchStart);
+      el.removeEventListener('touchmove', handleTouchMove);
+      el.removeEventListener('touchend', handleTouchEnd);
+      el.removeEventListener('touchcancel', handleTouchEnd);
+    };
+  }, [isTouch, showMenu, replyTo, openBar]);
 
-  const handlePointerUp = () => {
-    if (isTouch) {
-      clearTimeout(pressTimeout.current);
-    }
-  };
+  React.useEffect(() => {
+    if (!isTouch) return;
+    const el = containerRef.current;
+    if (!el) return;
+    const prevent = (e) => showMenu && e.preventDefault();
+    el.addEventListener('contextmenu', prevent);
+    return () => el.removeEventListener('contextmenu', prevent);
+  }, [isTouch, showMenu]);
 
   const handleCopy = () => {
     if (text) {
@@ -255,14 +297,13 @@ const MessageItem = React.forwardRef(({ message, isOwn, onDelete, onReply, scrol
   return (
     <div
       ref={setRefs}
-      className="relative group pr-12"
+      className="relative group pr-12 select-none"
+      style={{ WebkitTouchCallout: 'none' }}
       tabIndex={0}
       onKeyDown={handleKeyDown}
       onMouseEnter={handleMouseEnter}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      onPointerDown={handlePointerDown}
-      onPointerUp={handlePointerUp}
     >
       {message.replyTo && (
         <div
@@ -350,6 +391,11 @@ const MessageItem = React.forwardRef(({ message, isOwn, onDelete, onReply, scrol
           showStartThread={!message.parentMessageId}
           showDelete={isOwn}
           isTouch={isTouch}
+          showReactions={isTouch}
+          onReact={(emoji) =>
+            toggleReaction(message._id || message.id, emoji)
+          }
+          referenceRef={containerRef}
         />
       </div>
 
