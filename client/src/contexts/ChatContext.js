@@ -6,6 +6,9 @@ import { SocketContext } from './SocketContext';
 import api from 'services/apiClient';
 
 
+const hasUser = (arr, userId) =>
+  Array.isArray(arr) && arr.some((u) => (u.user?._id || u.user || u.userId) === userId);
+
 export const ChatContext = createContext();
 
 export const ChatProvider = ({ children }) => {
@@ -100,6 +103,10 @@ export const ChatProvider = ({ children }) => {
           newMessage,
         ],
       }));
+
+      if (newMessage.sender._id !== currentUser._id) {
+        socket.emit('ack-delivery', { messageId: newMessage._id });
+      }
 
       // Update chat list to show latest message
       setChats((prevChats) => {
@@ -201,30 +208,60 @@ export const ChatProvider = ({ children }) => {
       });
     });
 
-    // Message read
-    socket.on('messages-read', ({ chatId, userId }) => {
-      if (selectedChat && selectedChat._id === chatId) {
-        setMessages((prevMessages) =>
-          prevMessages.map((msg) => {
-            if (!msg.readBy.includes(userId)) {
-              return {
-                ...msg,
-                readBy: [...msg.readBy, userId],
-              };
-            }
-            return msg;
-          })
-        );
-      }
+    // Message delivered
+    socket.on('message-delivered', ({ messageId, deliveredTo, deliveredAll }) => {
+      setMessages((prev) =>
+        prev.map((m) =>
+          m._id === messageId
+            ? { ...m, deliveredTo, status: deliveredAll ? 'delivered_all' : m.status }
+            : m
+        )
+      );
+      setMessageCache((prev) => {
+        const updated = {};
+        for (const [cid, msgs] of Object.entries(prev)) {
+          updated[cid] = msgs.map((m) =>
+            m._id === messageId
+              ? { ...m, deliveredTo, status: deliveredAll ? 'delivered_all' : m.status }
+              : m
+          );
+        }
+        return updated;
+      });
+    });
 
-      setMessageCache((prev) => ({
-        ...prev,
-        [chatId]: (prev[chatId] || []).map((msg) =>
-          msg.readBy.includes(userId)
-            ? msg
-            : { ...msg, readBy: [...msg.readBy, userId] }
-        ),
-      }));
+    // Message read
+    socket.on('message-read', ({ messageId, readerId, at, readAll }) => {
+      setMessages((prev) =>
+        prev.map((m) =>
+          m._id === messageId
+            ? {
+                ...m,
+                readBy: hasUser(m.readBy, readerId)
+                  ? m.readBy
+                  : [...m.readBy, { user: { _id: readerId }, at }],
+                status: readAll ? 'read_all' : m.status,
+              }
+            : m
+        )
+      );
+      setMessageCache((prev) => {
+        const updated = {};
+        for (const [cid, msgs] of Object.entries(prev)) {
+          updated[cid] = msgs.map((m) =>
+            m._id === messageId
+              ? {
+                  ...m,
+                  readBy: hasUser(m.readBy, readerId)
+                    ? m.readBy
+                    : [...m.readBy, { user: { _id: readerId }, at }],
+                  status: readAll ? 'read_all' : m.status,
+                }
+              : m
+          );
+        }
+        return updated;
+      });
     });
 
     // User avatar updated
@@ -336,9 +373,12 @@ export const ChatProvider = ({ children }) => {
       // Initialize unread counts
       const counts = {};
       data.forEach(chat => {
-        const unreadMessages = chat.latestMessage &&
+        const unreadMessages =
+          chat.latestMessage &&
           chat.latestMessage.sender._id !== currentUser._id &&
-          !chat.latestMessage.readBy.includes(currentUser._id) ? 1 : 0;
+          !hasUser(chat.latestMessage.readBy, currentUser._id)
+            ? 1
+            : 0;
         counts[chat._id] = unreadMessages;
       });
       setUnreadCounts(counts);
@@ -362,9 +402,14 @@ export const ChatProvider = ({ children }) => {
       const data = await getMessages(chatId);
       setMessages(data);
       setMessageCache((prev) => ({ ...prev, [chatId]: data }));
+      data.forEach((m) => {
+        if (socket && m.sender._id !== currentUser._id) {
+          socket.emit('ack-delivery', { messageId: m._id });
+        }
+      });
       const lastReadMsg = [...data]
         .reverse()
-        .find((m) => m.readBy.includes(currentUser._id));
+        .find((m) => hasUser(m.readBy, currentUser._id));
       const lastReadAt = lastReadMsg
         ? new Date(lastReadMsg.createdAt)
         : new Date(0);
@@ -634,6 +679,11 @@ export const ChatProvider = ({ children }) => {
     try {
       await markAsRead(chatId);
 
+      const last = (messageCache[chatId] || messages).slice(-1)[0];
+      if (socket && last) {
+        socket.emit('ack-read-up-to', { conversationId: chatId, messageId: last._id });
+      }
+
       // Clear unread count for this chat
       setUnreadCounts(prev => ({
         ...prev,
@@ -654,9 +704,9 @@ export const ChatProvider = ({ children }) => {
         setMessages(prevMessages => {
           const updated = prevMessages.map(msg => ({
             ...msg,
-            readBy: msg.readBy.includes(currentUser._id)
+            readBy: hasUser(msg.readBy, currentUser._id)
               ? msg.readBy
-              : [...msg.readBy, currentUser._id],
+              : [...msg.readBy, { user: { _id: currentUser._id }, at: now }],
           }));
           setMessageCache(prev => ({ ...prev, [chatId]: updated }));
           return updated;
@@ -665,9 +715,9 @@ export const ChatProvider = ({ children }) => {
         setMessageCache(prev => ({
           ...prev,
           [chatId]: (prev[chatId] || []).map(msg =>
-            msg.readBy.includes(currentUser._id)
+            hasUser(msg.readBy, currentUser._id)
               ? msg
-              : { ...msg, readBy: [...msg.readBy, currentUser._id] }
+              : { ...msg, readBy: [...msg.readBy, { user: { _id: currentUser._id }, at: now }] }
           ),
         }));
       }

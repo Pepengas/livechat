@@ -4,7 +4,10 @@ import {
   TrashIcon,
   ArrowUturnLeftIcon,
   ArrowUturnRightIcon,
+  CheckIcon,
 } from '@heroicons/react/24/outline';
+import { CheckIcon as CheckIconSolid } from '@heroicons/react/24/solid';
+import { SocketContext } from '../../contexts/SocketContext';
 import { useChat } from '../../hooks/useChat';
 import linkify, { extractUrls } from '../../utils/linkify';
 import LinkPreviewCard from './LinkPreviewCard';
@@ -38,8 +41,16 @@ const fetchLinkPreview = async (url) => {
   );
 };
 
-const MessageItem = ({ message, isOwn, onDelete, onReply }) => {
+const MessageItem = React.forwardRef(({ message, isOwn, onDelete, onReply }, ref) => {
   const { openThread, currentUser, toggleReaction } = useChat();
+  const socket = React.useContext(SocketContext);
+  const containerRef = React.useRef(null);
+  const setRefs = (el) => {
+    containerRef.current = el;
+    if (typeof ref === 'function') ref(el);
+    else if (ref) ref.current = el;
+  };
+  const hasUser = (arr, id) => Array.isArray(arr) && arr.some((u) => (u.user?._id || u.user) === id);
   const isTouch = typeof window !== 'undefined' && 'ontouchstart' in window;
   const text = message.text || message.content;
   const [showBar, setShowBar] = React.useState(false);
@@ -144,8 +155,29 @@ const MessageItem = ({ message, isOwn, onDelete, onReply }) => {
     );
   };
 
+  React.useEffect(() => {
+    if (!socket || isOwn) return;
+    const el = containerRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.intersectionRatio >= 0.6) {
+            if (!hasUser(message.readBy, currentUser._id)) {
+              socket.emit('ack-read', { messageId: message._id });
+            }
+          }
+        });
+      },
+      { threshold: 0.6 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [socket, message._id, message.readBy, currentUser._id, isOwn]);
+
   return (
     <div
+      ref={setRefs}
       className="relative group"
       tabIndex={0}
       onKeyDown={handleKeyDown}
@@ -236,8 +268,26 @@ const MessageItem = ({ message, isOwn, onDelete, onReply }) => {
           {message.threadCount === 1 ? 'reply' : 'replies'} → View thread
         </button>
       )}
+
+      {isOwn && (
+        <div className="absolute -bottom-4 right-0 flex text-gray-500">
+          {message.status === 'sent' && <CheckIcon className="h-4 w-4" />}
+          {message.status === 'delivered_all' && (
+            <>
+              <CheckIcon className="h-4 w-4" />
+              <CheckIcon className="h-4 w-4 -ml-1" />
+            </>
+          )}
+          {message.status === 'read_all' && (
+            <div className="flex text-blue-600">
+              <CheckIconSolid className="h-4 w-4" />
+              <CheckIconSolid className="h-4 w-4 -ml-1" />
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
-};
+});
 
 export default MessageItem;
