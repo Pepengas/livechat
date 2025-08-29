@@ -11,6 +11,7 @@ const {
   uploadAttachments,
   getThread,
   toggleReaction,
+  getMessageById,
 } = require('../controllers/message.controller');
 const multer = require('multer');
 const { isValidFileType } = require('../utils/fileUpload');
@@ -48,6 +49,9 @@ router.post('/:id/ack-read', ackRead);
 
 // Get a message thread
 router.get('/:id/thread', getThread);
+
+// Get a single message
+router.get('/:id', getMessageById);
 
 // Toggle reaction
 router.post('/:id/reactions', toggleReaction);

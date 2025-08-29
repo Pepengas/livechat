@@ -42,8 +42,8 @@ const fetchLinkPreview = async (url) => {
   );
 };
 
-const MessageItem = React.forwardRef(({ message, isOwn, onDelete, onReply }, ref) => {
-  const { openThread, currentUser, toggleReaction, replyTo } = useChat();
+const MessageItem = React.forwardRef(({ message, isOwn, onDelete, onReply, scrollToMessage }, ref) => {
+  const { openThread, currentUser, toggleReaction, replyTo, ensureMessageLoaded } = useChat();
   const socket = React.useContext(SocketContext);
   const containerRef = React.useRef(null);
   const setRefs = (el) => {
@@ -264,6 +264,37 @@ const MessageItem = React.forwardRef(({ message, isOwn, onDelete, onReply }, ref
       onPointerDown={handlePointerDown}
       onPointerUp={handlePointerUp}
     >
+      {message.replyTo && (
+        <div
+          className="mb-1 p-2 rounded bg-gray-100 dark:bg-gray-700 border-l-2 border-blue-500 cursor-pointer overflow-hidden"
+          onClick={async () => {
+            const ok = await ensureMessageLoaded(message.replyTo.id);
+            if (ok && scrollToMessage) scrollToMessage(message.replyTo.id);
+          }}
+        >
+          {message.replyTo.isUnavailable ? (
+            <div className="text-sm text-gray-500">Original message unavailable</div>
+          ) : (
+            <div>
+              <div className="text-xs text-gray-500">
+                {message.replyTo.senderId === (currentUser?._id || currentUser?.id)
+                  ? 'You'
+                  : message.replyTo.senderName}
+              </div>
+              <div className="text-sm truncate flex items-center gap-2">
+                {message.replyTo.thumbUrl && (
+                  <img
+                    src={message.replyTo.thumbUrl}
+                    alt="thumb"
+                    className="w-8 h-8 object-cover rounded"
+                  />
+                )}
+                {message.replyTo.excerpt}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
       {text && (
         <div className="text-[15px] leading-6 whitespace-pre-wrap break-words">
           {linkify(text)}

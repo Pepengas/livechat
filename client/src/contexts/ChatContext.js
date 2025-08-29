@@ -1,6 +1,6 @@
 import React, { createContext, useState, useEffect, useContext, useRef } from 'react';
 import { getChats, accessChat, createGroupChat, renameGroup, addToGroup, removeFromGroup, leaveGroup } from '../services/chatService';
-import { getMessages, sendMessage, markAsRead, deleteMessage, getThread } from '../services/messageService';
+import { getMessages, sendMessage, markAsRead, deleteMessage, getThread, getMessageById } from '../services/messageService';
 import { AuthContext } from './AuthContext';
 import { SocketContext } from './SocketContext';
 import api from 'services/apiClient';
@@ -35,6 +35,7 @@ export const ChatProvider = ({ children }) => {
   const [pagination, setPagination] = useState({});
   const [loadingMore, setLoadingMore] = useState(false);
   const messageControllerRef = useRef(null);
+  const replyCache = useRef({});
 
   const updateMessageReactions = (messageId, reactions) => {
     setMessages((prev) => prev.map((m) => (m._id === messageId ? { ...m, reactions } : m)));
@@ -57,6 +58,63 @@ export const ChatProvider = ({ children }) => {
 
   const cancelReply = () => {
     setReplyTo(null);
+  };
+
+  const buildReplyData = (msg) => {
+    if (!msg) return undefined;
+    const att = msg.attachments?.[0];
+    let type = 'text';
+    let excerpt = (msg.content || msg.text || '').slice(0, 120);
+    let thumbUrl;
+    if (att) {
+      if (att.type?.startsWith('image/')) {
+        type = 'image';
+        excerpt = 'Photo';
+        thumbUrl = att.url;
+      } else if (att.type?.startsWith('audio/')) {
+        type = 'audio';
+        excerpt = 'Audio';
+      } else {
+        type = 'file';
+        excerpt = att.name?.slice(0, 120) || 'File';
+      }
+    }
+    return {
+      id: msg._id || msg.id,
+      snapshot: {
+        senderId: msg.sender?._id || msg.senderId,
+        senderName: msg.sender?.name || 'Unknown',
+        type,
+        excerpt,
+        thumbUrl,
+        createdAt: msg.createdAt,
+      },
+    };
+  };
+
+  const hydrateReplies = async (msgs) => {
+    for (const m of msgs) {
+      if (!m.replyTo) continue;
+      const id = m.replyTo.id;
+      const cached = replyCache.current[id];
+      if (m.replyTo.senderName && m.replyTo.excerpt) {
+        replyCache.current[id] = { ...m.replyTo };
+        continue;
+      }
+      if (cached) {
+        m.replyTo = { id, ...cached };
+        continue;
+      }
+      try {
+        const ref = await getMessageById(id);
+        const data = buildReplyData(ref)?.snapshot || {};
+        replyCache.current[id] = data;
+        m.replyTo = { id, ...data };
+      } catch (err) {
+        replyCache.current[id] = { isUnavailable: true };
+        m.replyTo = { id, isUnavailable: true };
+      }
+    }
   };
 
   // Exit reply mode when switching chats
@@ -93,7 +151,8 @@ export const ChatProvider = ({ children }) => {
     if (!socket) return;
 
     // New message received
-    socket.on('message-received', (newMessage) => {
+    socket.on('message-received', async (newMessage) => {
+      await hydrateReplies([newMessage]);
       // Update messages if in the same chat
       if (selectedChat && selectedChat._id === newMessage.chat._id) {
         setMessages((prev) =>
@@ -466,6 +525,7 @@ export const ChatProvider = ({ children }) => {
         { signal: messageControllerRef.current.signal }
       );
       const data = items.slice().reverse();
+      await hydrateReplies(data);
       setMessages(data);
       setMessageCache((prev) => ({ ...prev, [chatId]: data }));
       setPagination((prev) => ({ ...prev, [chatId]: { hasMore, nextCursor } }));
@@ -508,6 +568,7 @@ export const ChatProvider = ({ children }) => {
         { signal: messageControllerRef.current?.signal }
       );
       const data = items.slice().reverse();
+      await hydrateReplies(data);
       setMessages((prev) => mergeMessages(prev, data));
       setMessageCache((prev) => ({
         ...prev,
@@ -522,6 +583,19 @@ export const ChatProvider = ({ children }) => {
     } finally {
       setLoadingMore(false);
     }
+  };
+
+  const ensureMessageLoaded = async (messageId) => {
+    if (!selectedChat) return false;
+    if (messages.some((m) => m._id === messageId)) return true;
+    while (pagination[selectedChat._id]?.hasMore) {
+      await loadOlderMessages(selectedChat._id);
+      if ((messageCache[selectedChat._id] || []).some((m) => m._id === messageId)) {
+        setMessages([...messageCache[selectedChat._id]]);
+        return true;
+      }
+    }
+    return false;
   };
 
   const createOrAccessChat = async (userId) => {
@@ -674,16 +748,9 @@ export const ChatProvider = ({ children }) => {
   const sendNewMessage = async (chatId, content, attachments = [], reply) => {
     setError(null);
     try {
-      const replyData = reply
-        ? {
-            id: reply._id || reply.id,
-            snapshot: {
-              senderName: reply.sender?.name || 'Unknown',
-              text: reply.content || reply.text || '',
-            },
-          }
-        : undefined;
+      const replyData = buildReplyData(reply);
       const data = await sendMessage(chatId, content, attachments, undefined, replyData);
+      await hydrateReplies([data]);
 
       if (socket) {
         socket.emit('new-message', data);
@@ -954,6 +1021,7 @@ export const ChatProvider = ({ children }) => {
     fetchChats,
     fetchMessages,
     loadOlderMessages,
+    ensureMessageLoaded,
     createOrAccessChat,
     createGroupChat: createNewGroupChat,
     createNewGroupChat,

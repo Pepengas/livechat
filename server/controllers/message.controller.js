@@ -10,6 +10,21 @@ const {
   generateUniqueFilename,
 } = require('../utils/fileUpload');
 
+// Convert a Message mongoose document to a plain object including the
+// combined `replyTo` field expected by the client.
+const formatMessage = (doc) => {
+  const obj = doc.toObject();
+  if (obj.replyToId || obj.replyToSnapshot) {
+    obj.replyTo = {
+      id: obj.replyToId ? obj.replyToId.toString() : undefined,
+      ...(obj.replyToSnapshot || {}),
+    };
+  }
+  delete obj.replyToId;
+  delete obj.replyToSnapshot;
+  return obj;
+};
+
 /**
  * @desc    Send a new message
  * @route   POST /api/messages
@@ -74,7 +89,7 @@ const sendMessage = async (req, res) => {
     } else {
       await Message.findByIdAndUpdate(parentMessageId, { $inc: { threadCount: 1 } });
     }
-    const messageObj = message.toObject();
+    let messageObj = formatMessage(message);
     if (parentMessageId) {
       messageObj.parentMessageId = parentMessageId;
     }
@@ -146,7 +161,7 @@ const getMessages = async (req, res) => {
     });
 
     const messages = items.map((m) => ({
-      ...m.toObject(),
+      ...formatMessage(m),
       reactions: reactionMap[m._id.toString()] || [],
     }));
 
@@ -206,12 +221,12 @@ const getThread = async (req, res) => {
     });
 
     const replies = repliesDocs.map((m) => ({
-      ...m.toObject(),
+      ...formatMessage(m),
       reactions: map[m._id.toString()] || [],
       parentMessageId: id,
     }));
     const parentWithReactions = {
-      ...parent.toObject(),
+      ...formatMessage(parent),
       reactions: map[parent._id.toString()] || [],
     };
 
@@ -548,6 +563,30 @@ const searchMessages = async (req, res) => {
 };
 
 /**
+ * @desc    Get a single message by ID
+ * @route   GET /api/messages/:id
+ * @access  Private
+ */
+const getMessageById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const message = await Message.findById(id)
+      .populate('sender', 'name email avatar');
+    if (!message) {
+      return res.status(404).json({ message: 'Message not found' });
+    }
+    const chat = await Chat.findById(message.chat);
+    if (!chat || !chat.users.includes(req.user._id)) {
+      return res.status(403).json({ message: 'Not authorized to view this message' });
+    }
+    res.json(formatMessage(message));
+  } catch (error) {
+    console.error('Get message error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+/**
  * @desc    Upload message attachments
  * @route   POST /api/messages/upload
  * @access  Private
@@ -583,6 +622,7 @@ module.exports = {
   deleteMessage,
   getThread,
   searchMessages,
+  getMessageById,
   uploadAttachments,
   toggleReaction,
 };
