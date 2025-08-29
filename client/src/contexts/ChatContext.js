@@ -228,6 +228,7 @@ export const ChatProvider = ({ children }) => {
         }
         return updated;
       });
+});
       setChats((prev) =>
         prev.map((chat) =>
           chat.latestMessage && chat.latestMessage._id === messageId
@@ -277,7 +278,7 @@ export const ChatProvider = ({ children }) => {
           );
         }
         return updated;
-      });
+});
       setChats((prev) =>
         prev.map((chat) => {
           if (chat.latestMessage && chat.latestMessage._id === messageId) {
