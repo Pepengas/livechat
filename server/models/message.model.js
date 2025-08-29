@@ -26,9 +26,15 @@ const messageSchema = new mongoose.Schema(
       ref: 'Message',
       default: null
     },
+    // Stores a minimal snapshot of the replied-to message so clients can
+    // render a quoted block without having to fetch the original message.
     replyToSnapshot: {
+      senderId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
       senderName: { type: String },
-      text: { type: String }
+      type: { type: String }, // "text", "image", "file", "audio"
+      excerpt: { type: String },
+      thumbUrl: { type: String },
+      createdAt: { type: Date }
     },
     threadCount: {
       type: Number,

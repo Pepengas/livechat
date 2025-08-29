@@ -133,3 +133,12 @@ export const uploadAttachments = async (files) => {
     throw error.response?.data || { message: 'Failed to upload files' };
   }
 };
+
+export const getMessageById = async (id) => {
+  try {
+    const response = await api.get(`/messages/${id}`);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || { message: 'Failed to fetch message' };
+  }
+};
