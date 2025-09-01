@@ -44,7 +44,7 @@ const MessageGroup = ({
       );
       last = msgDate;
     });
-    return <div className="mb-3">{elements}</div>;
+    return <div className="mb-1">{elements}</div>;
   }
 
   const isOwn = (group.sender._id || group.sender.id) === (currentUser._id || currentUser.id);
@@ -106,7 +106,7 @@ const MessageGroup = ({
     last = msgDate;
   });
 
-  return <div className="group mb-3">{elements}</div>;
+  return <div className="group mb-1">{elements}</div>;
 };
 
 export default MessageGroup;
