@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useChat } from '../hooks/useChat';
 
@@ -20,13 +20,6 @@ const Chat = () => {
   const [isUserProfileModalOpen, setIsUserProfileModalOpen] = useState(false);
   const [isGroupInfoModalOpen, setIsGroupInfoModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
-
-  // Close mobile menu when a chat is selected
-  useEffect(() => {
-    if (selectedChat && isMobileMenuOpen) {
-      setIsMobileMenuOpen(false);
-    }
-  }, [selectedChat]);
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
