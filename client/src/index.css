@@ -179,11 +179,15 @@
 }
 
 .time-divider {
-  @apply my-2 text-center;
+  @apply my-2 flex items-center text-center;
+}
+
+.time-divider hr {
+  @apply flex-1 border-t border-gray-200 dark:border-gray-700;
 }
 
 .time-divider span {
-  @apply text-xs text-gray-400;
+  @apply mx-3 text-xs text-gray-400 dark:text-gray-500;
 }
 
 
