@@ -3,6 +3,8 @@ import MessageItem from './MessageItem';
 import TimeDivider from './TimeDivider';
 import linkify from '../../utils/linkify';
 
+const DIVIDER_THRESHOLD_MS = 5 * 60 * 1000;
+
 const avatarUrl = (sender) => {
   if (!sender) return '';
   return (
@@ -26,11 +28,8 @@ const MessageGroup = ({
     const elements = [];
     group.items.forEach((m) => {
       const msgDate = new Date(m.createdAt);
-      const minuteChanged =
-        !last ||
-        msgDate.getHours() !== last.getHours() ||
-        msgDate.getMinutes() !== last.getMinutes();
-      if (minuteChanged) {
+      const showDivider = !last || msgDate - last >= DIVIDER_THRESHOLD_MS;
+      if (showDivider) {
         elements.push(
           <TimeDivider key={`time-${m.id || m._id}`} time={msgDate} />
         );
@@ -54,11 +53,8 @@ const MessageGroup = ({
   let prevType = 'divider';
   group.items.forEach((m) => {
     const msgDate = new Date(m.createdAt);
-    const minuteChanged =
-      !last ||
-      msgDate.getHours() !== last.getHours() ||
-      msgDate.getMinutes() !== last.getMinutes();
-    if (minuteChanged) {
+    const showDivider = !last || msgDate - last >= DIVIDER_THRESHOLD_MS;
+    if (showDivider) {
       elements.push(
         <TimeDivider key={`time-${m.id || m._id}`} time={msgDate} />
       );
