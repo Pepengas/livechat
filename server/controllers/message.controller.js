@@ -3,6 +3,7 @@ const User = require('../models/user.model');
 const Chat = require('../models/chat.model');
 const Reaction = require('../models/reaction.model');
 const ConversationParticipant = require('../models/conversationParticipant.model');
+const mongoose = require('mongoose');
 const path = require('path');
 const {
   isValidFileType,
@@ -24,6 +25,10 @@ const formatMessage = (doc) => {
   delete obj.replyToSnapshot;
   return obj;
 };
+
+// Helper to check if a user belongs to a chat
+const isUserInChat = (chat, userId) =>
+  chat.users.some((u) => u.equals(userId));
 
 /**
  * @desc    Send a new message
@@ -120,12 +125,12 @@ const getMessages = async (req, res) => {
       return res.status(404).json({ message: 'Chat not found' });
     }
 
-    if (!chat.users.includes(req.user._id)) {
+    if (!isUserInChat(chat, req.user._id)) {
       return res.status(403).json({ message: 'Not authorized to view these messages' });
     }
 
     const q = {
-      chat: chatId,
+      chat: new mongoose.Types.ObjectId(chatId),
       parentMessage: null,
       deletedForEveryone: { $ne: true },
       deletedFor: { $ne: req.user._id }
@@ -203,7 +208,7 @@ const getThread = async (req, res) => {
     }
 
     const chat = await Chat.findById(parent.chat);
-    if (!chat || !chat.users.includes(req.user._id)) {
+    if (!chat || !isUserInChat(chat, req.user._id)) {
       return res.status(403).json({ message: 'Not authorized to view this thread' });
     }
 
@@ -311,7 +316,7 @@ const markAsRead = async (req, res) => {
     }
     
     // Check if user is part of the chat
-    if (!chat.users.includes(req.user._id)) {
+    if (!isUserInChat(chat, req.user._id)) {
       return res.status(403).json({ message: 'Not authorized to mark these messages as read' });
     }
 
@@ -549,7 +554,7 @@ const searchMessages = async (req, res) => {
     }
     
     // Check if user is part of the chat
-    if (!chat.users.includes(req.user._id)) {
+    if (!isUserInChat(chat, req.user._id)) {
       return res.status(403).json({ message: 'Not authorized to search these messages' });
     }
 
@@ -582,7 +587,7 @@ const getMessageById = async (req, res) => {
       return res.status(404).json({ message: 'Message not found' });
     }
     const chat = await Chat.findById(message.chat);
-    if (!chat || !chat.users.includes(req.user._id)) {
+    if (!chat || !isUserInChat(chat, req.user._id)) {
       return res.status(403).json({ message: 'Not authorized to view this message' });
     }
     res.json(formatMessage(message));
