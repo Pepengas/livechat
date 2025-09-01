@@ -10,10 +10,10 @@ const {
   generateUniqueFilename,
 } = require('../utils/fileUpload');
 
-// Convert a Message mongoose document to a plain object including the
-// combined `replyTo` field expected by the client.
+// Convert a Message mongoose document or plain object to a plain object
+// including the combined `replyTo` field expected by the client.
 const formatMessage = (doc) => {
-  const obj = doc.toObject();
+  const obj = doc && typeof doc.toObject === 'function' ? doc.toObject() : { ...doc };
   if (obj.replyToId || obj.replyToSnapshot) {
     obj.replyTo = {
       id: obj.replyToId ? obj.replyToId.toString() : undefined,
@@ -146,7 +146,8 @@ const getMessages = async (req, res) => {
       .populate('readBy.user', 'name email avatar')
       .populate('deliveredTo.user', 'name email avatar')
       .sort({ createdAt: -1, _id: -1 })
-      .limit(limitNum + 1);
+      .limit(limitNum + 1)
+      .lean();
 
     const hasMore = docs.length > limitNum;
     const items = hasMore ? docs.slice(0, -1) : docs;
