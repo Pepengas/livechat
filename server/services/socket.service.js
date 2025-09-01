@@ -39,6 +39,13 @@ const socketService = (io) => {
 
         // Join a room with the user's ID
         socket.join(userData._id);
+
+        // Send list of currently online users to the connected client
+        const onlineUsers = Array.from(connectedUsers.keys()).map((id) => ({
+          userId: id,
+          status: 'online',
+        }));
+        socket.emit('online-users', onlineUsers);
         socket.emit('connected');
       } catch (error) {
         console.error('Socket setup error:', error);
