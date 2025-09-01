@@ -104,7 +104,7 @@ const sendMessage = async (req, res) => {
 
 /**
  * @desc    Get all messages for a chat
- * @route   GET /api/messages/:chatId
+ * @route   GET /api/messages?chatId={chatId}
  * @access  Private
  */
 const getMessages = async (req, res) => {
