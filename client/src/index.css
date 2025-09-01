@@ -170,7 +170,7 @@
 }
 
 .message-row {
-  display: block;
+  /* Allow Tailwind's grid classes to control layout to prevent overlapping */
   min-width: 0;
 }
 
