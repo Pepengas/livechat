@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useChat } from '../hooks/useChat';
 
@@ -20,13 +20,6 @@ const Chat = () => {
   const [isUserProfileModalOpen, setIsUserProfileModalOpen] = useState(false);
   const [isGroupInfoModalOpen, setIsGroupInfoModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
-
-  // Close mobile menu when a chat is selected
-  useEffect(() => {
-    if (selectedChat && isMobileMenuOpen) {
-      setIsMobileMenuOpen(false);
-    }
-  }, [selectedChat]);
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -69,10 +62,7 @@ const Chat = () => {
   return (
     <div className="h-full flex relative overscroll-none min-h-0">
       {isMobileMenuOpen && (
-        <div
-          className="fixed inset-0 bg-black/40 z-20 md:hidden transition-opacity"
-          onClick={toggleMobileMenu}
-        ></div>
+        <div className="fixed inset-0 bg-black/40 z-20 md:hidden transition-opacity"></div>
       )}
 
       {/* Sidebar */}
