@@ -18,15 +18,8 @@ const socketService = (io) => {
     socket.on('setup', async (userData) => {
       try {
         // Add user to connected users map
-        connectedUsers.set(userData._id, socket.id);
-        socket.userId = userData._id;
-        // Preserve basic user info for event payloads
-        socket.user = {
-          _id: userData._id,
-          name: userData.name,
-          avatar: userData.avatar,
-        };
-
+        connectedUsers.set(userData._id.toString(), socket.id);
+        socket.userId = userData._id.toString();
         // Update user status in database
         await User.findByIdAndUpdate(userData._id, {
           status: 'online',
@@ -35,10 +28,10 @@ const socketService = (io) => {
         });
 
         // Emit online status to all users
-        socket.broadcast.emit('user-online', { userId: userData._id });
+        socket.broadcast.emit('user-online', { userId: socket.userId });
 
         // Join a room with the user's ID
-        socket.join(userData._id);
+        socket.join(socket.userId);
 
         // Send list of currently online users to the connected client
         const onlineUsers = Array.from(connectedUsers.keys()).map((id) => ({
@@ -252,10 +245,10 @@ const socketService = (io) => {
           await user.save();
 
           // Remove from connected users map
-          connectedUsers.delete(user._id.toString());
+          connectedUsers.delete(socket.userId);
 
           // Broadcast offline status
-          socket.broadcast.emit('user-offline', { userId: user._id });
+          socket.broadcast.emit('user-offline', { userId: socket.userId });
         }
       } catch (error) {
         console.error('Disconnect error:', error);
