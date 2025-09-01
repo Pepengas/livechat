@@ -26,48 +26,23 @@ export const SocketProvider = ({ children }) => {
       // Set up event listeners
       newSocket.on('connect', () => {
         console.log('Socket connected');
-        // Complete socket setup with current user info
+        // Register the current user with the server
         newSocket.emit('setup', currentUser);
+        // Request the current list of online users
+        newSocket.emit('get-online-users', (users) => {
+          setOnlineUsers(users);
+        });
       });
 
-      // Receive initial list of online users
-      newSocket.on('online-users', (users) => {
-        setOnlineUsers(users);
-      });
-
-      // User came online
       newSocket.on('user-online', ({ userId }) => {
         setOnlineUsers((prev) => {
           if (prev.some((u) => u.userId === userId)) return prev;
-          return [...prev, { userId, status: 'online' }];
-          
+          return [...prev, { userId }];
         });
       });
 
-      // User went offline
       newSocket.on('user-offline', ({ userId }) => {
         setOnlineUsers((prev) => prev.filter((u) => u.userId !== userId));
-      });
-
-      // User changed status
-      newSocket.on('user-status-change', ({ userId, status }) => {
-        setOnlineUsers((prev) => {
-          const index = prev.findIndex((u) => u.userId === userId);
-          if (status === 'offline') {
-            if (index !== -1) {
-              const updated = [...prev];
-              updated.splice(index, 1);
-              return updated;
-            }
-            return prev;
-          }
-          if (index !== -1) {
-            const updated = [...prev];
-            updated[index] = { userId, status };
-            return updated;
-          }
-          return [...prev, { userId, status }];
-        });
       });
 
       newSocket.on('disconnect', () => {
