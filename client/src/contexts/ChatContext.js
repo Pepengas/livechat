@@ -93,26 +93,58 @@ export const ChatProvider = ({ children }) => {
   };
 
   const hydrateReplies = async (msgs) => {
+    const toFetch = [];
+
+    // First pass: determine which reply IDs need fetching or caching
+    for (const m of msgs) {
+      if (!m.replyTo) continue;
+      const id = m.replyTo.id;
+
+      if (m.replyTo.senderName && m.replyTo.excerpt) {
+        // Message already contains snapshot data; cache it for future use
+        replyCache.current[id] = { ...m.replyTo };
+        continue;
+      }
+
+      const cached = replyCache.current[id];
+      if (cached) {
+        // Use cached data when available
+        m.replyTo = { id, ...cached };
+        continue;
+      }
+
+      // Collect IDs that need to be hydrated
+      if (!toFetch.includes(id)) {
+        toFetch.push(id);
+      }
+    }
+
+    // Fetch all missing replies in parallel
+    if (toFetch.length) {
+      const results = await Promise.all(
+        toFetch.map((id) =>
+          getMessageById(id)
+            .then((ref) => ({ id, data: buildReplyData(ref)?.snapshot || {} }))
+            .catch(() => ({ id, data: { isUnavailable: true } }))
+        )
+      );
+
+      results.forEach(({ id, data }) => {
+        replyCache.current[id] = data;
+      });
+    }
+
+    // Second pass: populate messages with hydrated data
     for (const m of msgs) {
       if (!m.replyTo) continue;
       const id = m.replyTo.id;
       const cached = replyCache.current[id];
-      if (m.replyTo.senderName && m.replyTo.excerpt) {
-        replyCache.current[id] = { ...m.replyTo };
-        continue;
-      }
+
       if (cached) {
         m.replyTo = { id, ...cached };
-        continue;
-      }
-      try {
-        const ref = await getMessageById(id);
-        const data = buildReplyData(ref)?.snapshot || {};
-        replyCache.current[id] = data;
-        m.replyTo = { id, ...data };
-      } catch (err) {
-        replyCache.current[id] = { isUnavailable: true };
+      } else if (!m.replyTo.senderName && !m.replyTo.excerpt) {
         m.replyTo = { id, isUnavailable: true };
+        replyCache.current[id] = { isUnavailable: true };
       }
     }
   };
