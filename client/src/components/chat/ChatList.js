@@ -5,7 +5,7 @@ import { useSocket } from '../../hooks/useSocket';
 import { formatDistanceToNow } from 'date-fns';
 import MessageStatusTicks from './MessageStatusTicks';
 
-const ChatList = ({ chats, openUserProfileModal }) => {
+const ChatList = ({ chats, openUserProfileModal, onChatSelect }) => {
   const { currentUser } = useAuth();
   const { selectedChat, setSelectedChat, unreadCounts } = useChat();
   const { isUserOnline } = useSocket();
@@ -81,7 +81,10 @@ const ChatList = ({ chats, openUserProfileModal }) => {
           <div
             key={chat._id}
             className={`p-4 cursor-pointer rounded-lg transition-colors duration-200 bg-gray-100 dark:bg-gray-700 hover:shadow-md hover:bg-gray-200 dark:hover:bg-gray-600 ${isSelected ? 'bg-gray-200 dark:bg-gray-600 shadow' : ''}`}
-            onClick={() => setSelectedChat(chat)}
+            onClick={() => {
+              setSelectedChat(chat);
+              if (onChatSelect) onChatSelect();
+            }}
           >
             <div className="flex items-center">
               <div className="relative">

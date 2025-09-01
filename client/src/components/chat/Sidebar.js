@@ -266,7 +266,13 @@ const Sidebar = ({
               <p className="text-sm">Search for users to start chatting</p>
             </div>
           ) : (
-            <ChatList chats={chats} openUserProfileModal={openUserProfileModal} />
+            <ChatList
+              chats={chats}
+              openUserProfileModal={openUserProfileModal}
+              onChatSelect={() => {
+                if (isMobileMenuOpen) toggleMobileMenu();
+              }}
+            />
           )
         ) : (
           // Search Results
