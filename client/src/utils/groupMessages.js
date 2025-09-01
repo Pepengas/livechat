@@ -1,19 +1,32 @@
 export function groupMessages(messages, windowMinutes = 5) {
+  const windowMs = windowMinutes * 60 * 1000;
+
+  const sorted = messages
+    .filter((m) => !Number.isNaN(Date.parse(m.createdAt)))
+    .sort((a, b) => Date.parse(a.createdAt) - Date.parse(b.createdAt));
+
   const groups = [];
   const isSameGroup = (a, b) => {
     const senderA = a.sender?.id || a.sender?._id;
     const senderB = b.sender?.id || b.sender?._id;
     return (
-      senderA && senderA === senderB &&
-      Math.abs(new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()) <= windowMinutes * 60 * 1000 &&
-      !a.isSystem && !b.isSystem
+      senderA &&
+      senderA === senderB &&
+      Math.abs(Date.parse(a.createdAt) - Date.parse(b.createdAt)) <= windowMs &&
+      !a.isSystem &&
+      !b.isSystem
     );
   };
 
-  for (let i = 0; i < messages.length; i++) {
-    const m = messages[i];
+  for (let i = 0; i < sorted.length; i++) {
+    const m = sorted[i];
     if (m.isSystem) {
-      groups.push({ key: `sys-${m.id || m._id}`, sender: null, startAt: new Date(m.createdAt), items: [m] });
+      groups.push({
+        key: `sys-${m.id || m._id}`,
+        sender: null,
+        startAt: new Date(m.createdAt),
+        items: [m],
+      });
       continue;
     }
     const prevGroup = groups[groups.length - 1];

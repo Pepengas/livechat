@@ -42,4 +42,24 @@ describe('groupMessages', () => {
     expect(groups).toHaveLength(3);
     expect(groups[1].sender).toBeNull();
   });
+
+  it('filters out messages missing createdAt', () => {
+    const msgs = [
+      { id: '1', sender: userA },
+      { id: '2', sender: userA, createdAt: '2020-01-01T00:00:00Z' },
+    ];
+    const groups = groupMessages(msgs);
+    expect(groups).toHaveLength(1);
+    expect(groups[0].items[0].id).toBe('2');
+  });
+
+  it('filters out messages with invalid createdAt', () => {
+    const msgs = [
+      { id: '1', sender: userA, createdAt: 'not-a-date' },
+      { id: '2', sender: userA, createdAt: '2020-01-01T00:00:00Z' },
+    ];
+    const groups = groupMessages(msgs);
+    expect(groups).toHaveLength(1);
+    expect(groups[0].items[0].id).toBe('2');
+  });
 });
