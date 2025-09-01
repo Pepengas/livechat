@@ -1,7 +1,7 @@
 import api from 'services/apiClient';
 
 /**
- * Get all messages for a chat
+ * Get all messages for a chat via `GET /api/messages?chatId={chatId}`
  * @param {string} chatId - Chat ID
  * @returns {Promise<Array>} List of messages
  */
