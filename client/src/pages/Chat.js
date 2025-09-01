@@ -62,7 +62,10 @@ const Chat = () => {
   return (
     <div className="h-full flex relative overscroll-none min-h-0">
       {isMobileMenuOpen && (
-        <div className="fixed inset-0 bg-black/40 z-20 md:hidden transition-opacity"></div>
+        <div
+          className="fixed inset-0 bg-black/40 z-20 md:hidden transition-opacity"
+          onClick={toggleMobileMenu}
+        ></div>
       )}
 
       {/* Sidebar */}
