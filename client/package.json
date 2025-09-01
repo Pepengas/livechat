@@ -7,6 +7,7 @@
     "@emotion/styled": "^11.10.6",
     "@floating-ui/react-dom": "^2.1.6",
     "@heroicons/react": "^2.0.17",
+    "@tanstack/react-virtual": "^3.13.12",
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
