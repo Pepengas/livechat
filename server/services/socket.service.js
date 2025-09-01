@@ -20,7 +20,13 @@ const socketService = (io) => {
         // Add user to connected users map
         connectedUsers.set(userData._id, socket.id);
         socket.userId = userData._id;
-        
+        // Preserve basic user info for event payloads
+        socket.user = {
+          _id: userData._id,
+          name: userData.name,
+          avatar: userData.avatar,
+        };
+
         // Update user status in database
         await User.findByIdAndUpdate(userData._id, {
           status: 'online',
@@ -30,9 +36,16 @@ const socketService = (io) => {
 
         // Emit online status to all users
         socket.broadcast.emit('user-online', { userId: userData._id });
-        
+
         // Join a room with the user's ID
         socket.join(userData._id);
+
+        // Send list of currently online users to the connected client
+        const onlineUsers = Array.from(connectedUsers.keys()).map((id) => ({
+          userId: id,
+          status: 'online',
+        }));
+        socket.emit('online-users', onlineUsers);
         socket.emit('connected');
       } catch (error) {
         console.error('Socket setup error:', error);
@@ -87,12 +100,12 @@ const socketService = (io) => {
 
     // Handle typing status
     socket.on('typing', (chatId) => {
-      socket.to(chatId).emit('typing', { chatId, userId: socket.userId });
+      socket.to(chatId).emit('typing', { chatId, user: socket.user });
     });
 
     // Handle stop typing status
     socket.on('stop-typing', (chatId) => {
-      socket.to(chatId).emit('stop-typing', { chatId, userId: socket.userId });
+      socket.to(chatId).emit('stop-typing', { chatId, user: socket.user });
     });
 
     // Handle read messages
