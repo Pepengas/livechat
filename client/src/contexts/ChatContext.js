@@ -790,7 +790,7 @@ export const ChatProvider = ({ children }) => {
       }
 
       // Add message to current chat
-      setMessages([...messages, data]);
+      setMessages((prev) => [...prev, data]);
       setMessageCache((prev) => ({
         ...prev,
         [chatId]: [...(prev[chatId] || []), data],
