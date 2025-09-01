@@ -42,4 +42,14 @@ describe('groupMessages', () => {
     expect(groups).toHaveLength(3);
     expect(groups[1].sender).toBeNull();
   });
+
+  it('maintains order for messages with identical timestamps', () => {
+    const msgs = [
+      { id: '1', sender: userA, createdAt: '2020-01-01T00:00:00Z' },
+      { id: '2', sender: userB, createdAt: '2020-01-01T00:00:00Z' },
+      { id: '3', sender: userA, createdAt: '2020-01-01T00:00:00Z' },
+    ];
+    const groups = groupMessages(msgs);
+    expect(groups.map((g) => g.items[0].id)).toEqual(['1', '2', '3']);
+  });
 });
