@@ -1,4 +1,13 @@
 export function groupMessages(messages, windowMinutes = 5) {
+  const sorted = messages
+    .map((m, index) => ({ m, index }))
+    .sort((a, b) => {
+      const diff =
+        new Date(a.m.createdAt).getTime() -
+        new Date(b.m.createdAt).getTime();
+      return diff !== 0 ? diff : a.index - b.index;
+    })
+    .map(({ m }) => m);
   const groups = [];
   const isSameGroup = (a, b) => {
     const senderA = a.sender?.id || a.sender?._id;
@@ -10,8 +19,8 @@ export function groupMessages(messages, windowMinutes = 5) {
     );
   };
 
-  for (let i = 0; i < messages.length; i++) {
-    const m = messages[i];
+  for (let i = 0; i < sorted.length; i++) {
+    const m = sorted[i];
     if (m.isSystem) {
       groups.push({ key: `sys-${m.id || m._id}`, sender: null, startAt: new Date(m.createdAt), items: [m] });
       continue;
