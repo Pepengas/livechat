@@ -13,7 +13,7 @@ const {
 // Convert a Message mongoose document to a plain object including the
 // combined `replyTo` field expected by the client.
 const formatMessage = (doc) => {
-  const obj = doc.toObject();
+  const obj = typeof doc.toObject === 'function' ? doc.toObject() : { ...doc };
   if (obj.replyToId || obj.replyToSnapshot) {
     obj.replyTo = {
       id: obj.replyToId ? obj.replyToId.toString() : undefined,
@@ -141,34 +141,41 @@ const getMessages = async (req, res) => {
 
     const limitNum = parseInt(limit);
 
-    const docs = await Message.find(q)
-      .populate('sender', 'name email avatar')
-      .populate('readBy.user', 'name email avatar')
-      .populate('deliveredTo.user', 'name email avatar')
-      .sort({ createdAt: -1, _id: -1 })
-      .limit(limitNum + 1);
+    const docs = await Message.aggregate([
+      { $match: q },
+      { $sort: { createdAt: -1, _id: -1 } },
+      { $limit: limitNum + 1 },
+      {
+        $lookup: {
+          from: 'reactions',
+          localField: '_id',
+          foreignField: 'message',
+          as: 'reactions',
+        },
+      },
+    ]);
+
+    await Message.populate(docs, [
+      { path: 'sender', select: 'name email avatar' },
+      { path: 'readBy.user', select: 'name email avatar' },
+      { path: 'deliveredTo.user', select: 'name email avatar' },
+    ]);
 
     const hasMore = docs.length > limitNum;
     const items = hasMore ? docs.slice(0, -1) : docs;
 
-    const ids = items.map((m) => m._id);
-    const reactions = await Reaction.find({ message: { $in: ids } });
-    const reactionMap = {};
-    reactions.forEach((r) => {
-      const key = r.message.toString();
-      if (!reactionMap[key]) reactionMap[key] = [];
-      reactionMap[key].push({ emoji: r.emoji, userId: r.user.toString() });
-    });
-
     const messages = items.map((m) => ({
       ...formatMessage(m),
-      reactions: reactionMap[m._id.toString()] || [],
+      reactions: (m.reactions || []).map((r) => ({
+        emoji: r.emoji,
+        userId: r.user.toString(),
+      })),
     }));
 
     let nextCursor = null;
     if (hasMore) {
       const last = items[items.length - 1];
-      nextCursor = `${last.createdAt.toISOString()}_${last._id.toString()}`;
+      nextCursor = `${new Date(last.createdAt).toISOString()}_${last._id.toString()}`;
     }
 
     res.json({ items: messages, hasMore, nextCursor });
