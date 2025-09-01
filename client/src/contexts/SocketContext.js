@@ -26,12 +26,23 @@ export const SocketProvider = ({ children }) => {
       // Set up event listeners
       newSocket.on('connect', () => {
         console.log('Socket connected');
-        // Emit user connected event with user info
-        newSocket.emit('user:connected', { userId: currentUser._id });
+        // Register the current user with the server
+        newSocket.emit('setup', currentUser);
+        // Request the current list of online users
+        newSocket.emit('get-online-users', (users) => {
+          setOnlineUsers(users);
+        });
       });
 
-      newSocket.on('users:online', (users) => {
-        setOnlineUsers(users);
+      newSocket.on('user-online', ({ userId }) => {
+        setOnlineUsers((prev) => {
+          if (prev.some((u) => u.userId === userId)) return prev;
+          return [...prev, { userId }];
+        });
+      });
+
+      newSocket.on('user-offline', ({ userId }) => {
+        setOnlineUsers((prev) => prev.filter((u) => u.userId !== userId));
       });
 
       newSocket.on('disconnect', () => {

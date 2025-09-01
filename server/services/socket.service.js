@@ -39,6 +39,12 @@ const socketService = (io) => {
       }
     });
 
+    // Provide the list of currently connected users
+    socket.on('get-online-users', (callback) => {
+      const users = Array.from(connectedUsers.keys()).map((userId) => ({ userId }));
+      callback(users);
+    });
+
     // Join a chat room
     socket.on('join-chat', (chatId) => {
       socket.join(chatId);
