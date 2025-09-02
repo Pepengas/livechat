@@ -11,6 +11,13 @@
   --border: #e5e7eb;
   --primary: #1a73e8;
   --primary-weak: #e8f0fe;
+  --panel: #ffffff;
+  --panel-2: #f1f5f9;
+  --text-dim: #6b7280;
+  --accent: #50a2ff;
+  --divider: #d1d5db;
+  --success: #16a34a;
+  --danger: #dc2626;
 }
 
 .dark {
@@ -21,6 +28,13 @@
   --border: #1f2937;
   --primary: #60a5fa;
   --primary-weak: #0b1220;
+  --panel: #15181b;
+  --panel-2: #1a1f24;
+  --text-dim: #9aa7b2;
+  --accent: #50a2ff;
+  --divider: #2a2f34;
+  --success: #4adf83;
+  --danger: #ff6b6b;
 }
 
 @layer base {

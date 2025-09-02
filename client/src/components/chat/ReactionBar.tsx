@@ -2,12 +2,18 @@ import React, { useEffect, useRef } from 'react';
 
 export const DEFAULT_EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '👎'];
 
-const ReactionBar = ({ onSelect, onClose, emojis = DEFAULT_EMOJIS }) => {
-  const ref = useRef(null);
+interface ReactionBarProps {
+  onSelect: (emoji: string) => void;
+  onClose?: () => void;
+  emojis?: string[];
+}
+
+const ReactionBar: React.FC<ReactionBarProps> = ({ onSelect, onClose, emojis = DEFAULT_EMOJIS }) => {
+  const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const handleClick = (e) => {
-      if (ref.current && !ref.current.contains(e.target)) {
+    const handleClick = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
         onClose?.();
       }
     };
@@ -19,7 +25,7 @@ const ReactionBar = ({ onSelect, onClose, emojis = DEFAULT_EMOJIS }) => {
     <div
       ref={ref}
       role="menu"
-      className="flex bg-white shadow rounded-full py-1 px-2 gap-1"
+      className="flex bg-panel-2 shadow rounded-full py-1 px-2 gap-1"
     >
       {emojis.map((emoji) => (
         <button
