@@ -3,6 +3,7 @@ import React from 'react';
 interface SidebarRightProps {
   isOpen?: boolean;
   onClose?: () => void;
+  children?: React.ReactNode;
 }
 
 const SidebarRight: React.FC<SidebarRightProps> = ({ isOpen = false, onClose, children }) => {

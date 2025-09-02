@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useRive, Layout } from 'rive-react';
+import { useRive, Layout, Fit, Alignment } from 'rive-react';
 
 // Load the teddy.riv asset from public/assets
 const RIVE_SRC = '/assets/teddy.riv';
@@ -17,14 +17,15 @@ export default function LoginFormComponent() {
     src: RIVE_SRC,
     stateMachines: STATE_MACHINE,
     autoplay: true,
-    layout: new Layout({ fit: 'contain', alignment: { x: 0.5, y: 0.5 } }),
+    layout: new Layout({ fit: Fit.Contain, alignment: Alignment.Center }),
   });
 
   // 3. Cache state machine inputs
-  const numLookInput = rive?.stateMachineInputs.find(i => i.name === 'numLook')!;
-  const isCheckingInput = rive?.stateMachineInputs.find(i => i.name === 'isChecking')!;
-  const trigSuccess = rive?.stateMachineInputs.find(i => i.name === 'trigSuccess')!;
-  const trigFail = rive?.stateMachineInputs.find(i => i.name === 'trigFail')!;
+  const inputs = rive?.stateMachineInputs(STATE_MACHINE);
+  const numLookInput = inputs?.find(i => i.name === 'numLook');
+  const isCheckingInput = inputs?.find(i => i.name === 'isChecking');
+  const trigSuccess = inputs?.find(i => i.name === 'trigSuccess');
+  const trigFail = inputs?.find(i => i.name === 'trigFail');
 
   // 4. Update head look based on username length
   useEffect(() => {

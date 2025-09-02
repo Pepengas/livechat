@@ -2,6 +2,7 @@ import React from 'react';
 
 interface SidebarLeftProps {
   isOpen?: boolean;
+  children?: React.ReactNode;
 }
 
 const SidebarLeft: React.FC<SidebarLeftProps> = ({ isOpen = true, children }) => {
