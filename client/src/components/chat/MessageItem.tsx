@@ -107,7 +107,10 @@ const MessageItem = React.forwardRef<HTMLDivElement, MessageItemProps>(
       }
       setShowBar(true);
       setTimeout(() => {
-        containerRef.current?.querySelector('[role="menuitem"]')?.focus();
+        const menuItem = containerRef.current?.querySelector(
+          '[role="menuitem"]'
+        ) as HTMLElement | null;
+        menuItem?.focus();
       }, 0);
     };
     const closeBar = () => {
