@@ -3,7 +3,8 @@ import { useAuth } from '../hooks/useAuth';
 import { useChat } from '../hooks/useChat';
 
 // Components
-import ChatLayout from '../components/chat/ChatLayout';
+import Sidebar from '../components/chat/Sidebar';
+import ChatWindow from '../components/chat/ChatWindow';
 import ProfileModal from '../components/modals/ProfileModal';
 import CreateGroupModal from '../components/modals/CreateGroupModal';
 import UserProfileModal from '../components/modals/UserProfileModal';
@@ -18,6 +19,7 @@ const Chat = () => {
   const [isUserProfileModalOpen, setIsUserProfileModalOpen] = useState(false);
   const [isGroupInfoModalOpen, setIsGroupInfoModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const openProfileModal = () => {
     setIsProfileModalOpen(true);
@@ -53,9 +55,24 @@ const Chat = () => {
     setIsGroupInfoModalOpen(false);
   };
 
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen((v) => !v);
+  };
+
   return (
     <div className="h-full flex relative overscroll-none min-h-0">
-      <ChatLayout />
+      <Sidebar
+        isMobileMenuOpen={isMobileMenuOpen}
+        toggleMobileMenu={toggleMobileMenu}
+        openProfileModal={openProfileModal}
+        openCreateGroupModal={openCreateGroupModal}
+        openUserProfileModal={openUserProfileModal}
+      />
+      <ChatWindow
+        toggleMobileMenu={toggleMobileMenu}
+        openUserProfileModal={openUserProfileModal}
+        openGroupInfoModal={openGroupInfoModal}
+      />
 
       {/* Modals */}
       {isProfileModalOpen && (
