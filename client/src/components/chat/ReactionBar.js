@@ -19,7 +19,7 @@ const ReactionBar = ({ onSelect, onClose, emojis = DEFAULT_EMOJIS }) => {
     <div
       ref={ref}
       role="menu"
-      className="flex bg-white shadow rounded-full py-1 px-2 gap-1"
+      className="flex bg-panel-2 shadow rounded-full py-1 px-2 gap-1"
     >
       {emojis.map((emoji) => (
         <button
