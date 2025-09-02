@@ -338,26 +338,29 @@ const MessageItem = React.forwardRef(({ message, isOwn, onDelete, onReply, scrol
           )}
         </div>
       )}
-      {text && (
-        <div className="text-[15px] leading-6 whitespace-pre-wrap break-words">
-          {linkify(text)}
+      <div className="mt-1 flex justify-between items-center gap-2">
+        <div className="flex-1 min-w-0">
+          {text && (
+            <div className="text-[15px] leading-6 whitespace-pre-wrap break-words">
+              {linkify(text)}
+            </div>
+          )}
+
+          {firstUrl && (
+            <LinkPreviewCard preview={preview} isLoading={loadingPreview} />
+          )}
+
+          {message.attachments &&
+            message.attachments.map((att) => (
+              <div key={att.id || att.url}>{renderAttachment(att)}</div>
+            ))}
         </div>
-      )}
-
-      {firstUrl && (
-        <LinkPreviewCard preview={preview} isLoading={loadingPreview} />
-      )}
-
-      {message.attachments &&
-        message.attachments.map((att) => (
-          <div key={att.id || att.url}>{renderAttachment(att)}</div>
-        ))}
-
-      <div className="mt-1 flex justify-end items-center gap-1 text-xs text-gray-500">
-        <time dateTime={msgDate.toISOString()} title={fullTime}>
-          {shortTime}
-        </time>
-        {isOwn && <MessageStatusTicks status={message.status} />}
+        <div className="flex-shrink-0 flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
+          <time dateTime={msgDate.toISOString()} title={fullTime}>
+            {shortTime}
+          </time>
+          {isOwn && <MessageStatusTicks status={message.status} />}
+        </div>
       </div>
 
       {showBar && (
