@@ -188,6 +188,10 @@
   min-width: 0;
 }
 
+.meta {
+  @apply flex items-center gap-1 mt-1 text-xs text-gray-500 ml-auto w-max whitespace-nowrap;
+}
+
 .avatar-spacer {
   width: 48px;
 }
